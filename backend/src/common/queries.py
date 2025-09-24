@@ -6,6 +6,9 @@ TABLE_CREATE = {
         set_name VARCHAR(50),
         collector_number INTEGER NOT NULL,
         name VARCHAR(50) NOT NULL,
+        image_url_small VARCHAR(255),
+        image_url_normal VARCHAR(255),
+        image_url_large VARCHAR(255),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );""",
