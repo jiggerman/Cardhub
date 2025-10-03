@@ -11,21 +11,7 @@ TABLE_CREATE = {
         image_url_large VARCHAR(255),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );""",
-
-    "card_inventory": """CREATE TABLE card_inventory (
-        id SERIAL PRIMARY KEY,
-        card_id INTEGER REFERENCES cards(id) ON DELETE CASCADE,
-        lang VARCHAR(15),
-        quality VARCHAR(20) CHECK (quality IN ('GM', 'NM', 'NM-', 'SP', 'MP/PL', 'HP', 'Poor')),
-        foil BOOLEAN DEFAULT FALSE,
-        quantity INTEGER NOT NULL DEFAULT 0,
-        price DECIMAL(10,2) NOT NULL,
-        owner VARCHAR(50),
-        owner_id INTEGER REFERENCES users(id),
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-    """,
+    )""",
 
     "users": """CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -40,9 +26,23 @@ TABLE_CREATE = {
         shipping_address JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+    )
     """,
-    
+
+    "card_inventory": """CREATE TABLE IF NOT EXISTS card_inventory (
+        id SERIAL PRIMARY KEY,
+        card_id INTEGER REFERENCES cards(id) ON DELETE CASCADE,
+        lang VARCHAR(15),
+        quality VARCHAR(20) CHECK (quality IN ('GM', 'NM', 'NM-', 'SP', 'MP/PL', 'HP', 'Poor')),
+        foil BOOLEAN DEFAULT FALSE,
+        quantity INTEGER NOT NULL DEFAULT 0,
+        price DECIMAL(10,2) NOT NULL,
+        owner VARCHAR(50),
+        owner_id INTEGER REFERENCES users(id),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    )
+    """,
+
     "orders": """CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) NOT NULL,
@@ -52,7 +52,7 @@ TABLE_CREATE = {
         tracking_number VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+    )
     """,
 
     "order_items": """CREATE TABLE IF NOT EXISTS order_items (
@@ -62,7 +62,7 @@ TABLE_CREATE = {
         quantity INTEGER NOT NULL,
         unit_price DECIMAL(10,2) NOT NULL,
         subtotal DECIMAL(10,2) NOT NULL
-    );
+    )
     """,
 
     "cart_items": """CREATE TABLE IF NOT EXISTS cart_items (
@@ -71,29 +71,29 @@ TABLE_CREATE = {
         card_inventory_id INTEGER REFERENCES card_inventory(id) ON DELETE CASCADE,
         quantity INTEGER DEFAULT 1,
         added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(user_id, card_id)
-    );
+        UNIQUE(user_id, card_inventory_id)
+    )
     """,
 
     "card_requests": """CREATE TABLE IF NOT EXISTS card_requests (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
-        card_id INTEGER REFERENCES cards(id) ON DELETE CASCADE,
+        card_inventory_id INTEGER REFERENCES cards(id) ON DELETE CASCADE,
         max_price DECIMAL(10,2),
         status VARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'fulfilled', 'closed')),
         notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+    )
     """,
 
-    "password_resets": """CREATE TABLE password_resets (
+    "password_resets": """CREATE TABLE IF NOT EXISTS password_resets (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id),
         token VARCHAR(100) NOT NULL,
         expires_at TIMESTAMP NOT NULL,
         used BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+    )
     """
 }
 
