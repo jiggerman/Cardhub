@@ -2,6 +2,9 @@ import os
 import logging
 from dotenv import load_dotenv
 
+import json
+from tqdm import tqdm
+
 import psycopg2
 from psycopg2 import sql
 
@@ -99,3 +102,56 @@ class Database:
         except Exception as e:
             print(f"Create tables error: {e}")
             logging.error(f"Create tables error: {e}")
+
+    @with_cursor
+    def add_cards_from_file(self, cursor, file_path: str='../../../default-cards.json'):
+        try:
+            with open(file_path, 'r', encoding='UTF-8') as file:
+                cards = json.load(file)
+                for card in tqdm(cards):
+                    card_data = tuple(self.transform_card_data(card).values())
+                    try:
+                        cursor.execute("""INSERT INTO cards (color, set_code, set_name, collector_number, name, 
+                            card_type, image_url_small, image_url_normal, image_url_large) VALUES
+                            (%s, %s, %s, %s, %s, %s, %s, %s, %s)""", card_data)
+                    except Exception as e:
+                        self._conn.rollback()
+                        logging.error(f"Can't add card: {card_data} Error: {e}")
+        except Exception as e:
+            a(f"Error in parse/open file with default-cards.json. error: {e}")
+            logging.error(f"Error in parse/open file with default-cards.json. error: {e}")
+
+    @classmethod
+    def transform_card_data(self, card_data):
+        """Преобразует данные карты из Scryfall в формат для БД"""
+        # Определяем цвет на основе colors
+        color_identity = card_data.get('color_identity', [])
+        card_type = card_data.get('type_line', '')
+
+        if len(color_identity) == 0:
+            color = 'Colorless'
+        elif len(color_identity) > 1:
+            color = 'Multicolor'
+        else:
+            color_map = {'W': 'White', 'U': 'Blue', 'B': 'Black', 'R': 'Red', 'G': 'Green'}
+            color = color_map.get(color_identity[0], 'Unknown')
+
+        # Получаем URL изображений
+        image_uris = card_data.get('image_uris', {})
+
+        return {
+            'color': color,
+            'set_code': card_data.get('set', ''),
+            'set_name': card_data.get('set_name', ''),
+            'collector_number': str(card_data.get('collector_number', 0)),
+            'name': card_data.get('name', ''),
+            'card_type': card_type,
+            'image_url_small': image_uris.get('small', ''),
+            'image_url_normal': image_uris.get('normal', ''),
+            'image_url_large': image_uris.get('large', '')
+        }
+
+
+db = Database()
+db.create_tables()
+db.add_cards_from_file()
