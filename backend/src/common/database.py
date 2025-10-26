@@ -104,6 +104,29 @@ class Database:
             logging.error(f"Create tables error: {e}")
 
     @with_cursor
+    def set_indexs(self, cursor):
+        try:
+            self._conn.autocommit = True
+            cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
+
+            transactions = [
+                "CREATE INDEX CONCURRENTLY idx_cards_name_gin_trgm ON cards USING gin (name gin_trgm_ops);",
+                "CREATE INDEX CONCURRENTLY idx_cards_set_code ON cards(set_code);",
+                "CREATE INDEX CONCURRENTLY idx_cards_card_type ON cards(card_type);",
+                "CREATE INDEX CONCURRENTLY idx_cards_color ON cards(color);"
+            ]
+
+            for tran in transactions:
+                cursor.execute(tran)
+
+        except Exception as e:
+            print(f"Error in set indexses error: {e}")
+            logging.error(f"Error in set indexses error: {e}")
+            self._conn.rollback()
+        finally:
+            self._conn.autocommit = False
+
+    @with_cursor
     def add_cards_from_file(self, cursor, file_path: str='../../../default-cards.json'):
         try:
             with open(file_path, 'r', encoding='UTF-8') as file:
@@ -153,5 +176,4 @@ class Database:
 
 
 db = Database()
-db.create_tables()
-db.add_cards_from_file()
+db.set_indexs()
