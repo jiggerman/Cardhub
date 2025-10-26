@@ -174,6 +174,8 @@ class Database:
             'image_url_large': image_uris.get('large', '')
         }
 
-
-db = Database()
-db.set_indexs()
+    @with_cursor
+    def search_card(self, cursor, card_name):
+        cursor.execute(f"SELECT * FROM cards WHERE name ILIKE %s;", (f"%{card_name}%",))
+        cards = cursor.fetchall()
+        return (len(cards), cards)
