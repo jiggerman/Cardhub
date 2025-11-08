@@ -12,9 +12,10 @@ from functools import wraps
 from contextlib import contextmanager
 from typing import Any, Callable, Iterator, Optional
 
-from queries import TABLE_CREATE
+from backend.src.common.queries import TABLE_CREATE
 
 load_dotenv()
+
 
 class Database:
     def __init__(self):
@@ -141,7 +142,7 @@ class Database:
                         self._conn.rollback()
                         logging.error(f"Can't add card: {card_data} Error: {e}")
         except Exception as e:
-            a(f"Error in parse/open file with default-cards.json. error: {e}")
+            print(f"Error in parse/open file with default-cards.json. error: {e}")
             logging.error(f"Error in parse/open file with default-cards.json. error: {e}")
 
     @classmethod
@@ -175,7 +176,46 @@ class Database:
         }
 
     @with_cursor
-    def search_card(self, cursor, card_name):
-        cursor.execute(f"SELECT * FROM cards WHERE name ILIKE %s;", (f"%{card_name}%",))
+    def search_card(self, cursor, card_name) -> tuple:
+        cursor.execute("""SELECT * FROM cards WHERE name ILIKE %s;""", (f"%{card_name}%",))
         cards = cursor.fetchall()
-        return (len(cards), cards)
+
+        return len(cards), cards
+
+    @with_cursor
+    def search_cards_with_inventory(self, cursor, card_name):
+        query = """
+        SELECT 
+            c.id,
+            c.color,
+            c.set_code,
+            c.set_name, 
+            c.collector_number,
+            c.name,
+            c.card_type,
+            c.image_url_small,
+            c.image_url_normal,
+            c.image_url_large,
+            c.created_at,
+            c.updated_at,
+            COALESCE(SUM(ci.quantity), 0) as total_quantity,
+            MIN(CASE WHEN ci.quantity > 0 THEN ci.price END) as min_price,
+            ARRAY_AGG(DISTINCT ci.quality) FILTER (WHERE ci.quantity > 0) as available_qualities
+        FROM cards c
+        LEFT JOIN card_inventory ci ON c.id = ci.card_id 
+            AND ci.quantity > 0 
+            AND ci.quality IN ('NM', 'SP', 'HP', 'MP', 'DM')
+        WHERE c.name ILIKE %s
+        GROUP BY c.id
+        ORDER BY c.name, c.set_name
+        """
+        cursor.execute(query, (f"%{card_name}%",))
+        cards = cursor.fetchall()
+
+        return len(cards), cards
+
+
+if __name__ == '__main__':
+    db = Database()
+    db.create_tables()
+    print(db.search_cards_with_inventory(card_name='firebolt'))
