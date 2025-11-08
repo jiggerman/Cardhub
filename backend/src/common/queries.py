@@ -34,7 +34,7 @@ TABLE_CREATE = {
         id SERIAL PRIMARY KEY,
         card_id INTEGER REFERENCES cards(id) ON DELETE CASCADE,
         lang VARCHAR(15),
-        quality VARCHAR(20) CHECK (quality IN ('GM', 'NM', 'NM-', 'SP', 'MP/PL', 'HP', 'Poor')),
+        quality VARCHAR(20) CHECK (quality IN ('NM', 'SP', 'HP', 'MP', 'DM', 'NM-', 'SP+', 'SP-')),
         foil BOOLEAN DEFAULT FALSE,
         quantity INTEGER NOT NULL DEFAULT 0,
         price DECIMAL(10,2) NOT NULL,
