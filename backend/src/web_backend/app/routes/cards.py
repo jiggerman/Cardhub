@@ -4,7 +4,7 @@ import sys
 from flask import Blueprint, jsonify, request, current_app
 
 
-from backend.src.common.database import Database
+from backend.src.db import Database
 
 
 bp = Blueprint('cards', __name__)
