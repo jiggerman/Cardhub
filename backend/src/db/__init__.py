@@ -113,11 +113,14 @@ class Database:
         finally:
             self._conn.autocommit = False
 
-    """ ---- Card ---- """
+    """ ---- Cards ---- """
     from backend.src.db._cards import add_cards_from_file, transform_card_data, search_card, search_cards_with_inventory
+
+    """ ---- Base_user  ---- """
+    from backend.src.db._base_user import register_new_user, get_user, get_user_by_id
 
 
 if __name__ == '__main__':
     db = Database()
     db.create_tables()
-    print(db.search_cards_with_inventory(card_name='firebolt'))
+    print(db.get_user(email='kurva@mail.ru'))
