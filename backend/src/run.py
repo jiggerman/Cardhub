@@ -1,5 +1,5 @@
 from backend.src.web_backend.app import create_app
-from backend.src.common.database import Database
+from backend.src.db import Database
 
 app = create_app()
 db = Database()
