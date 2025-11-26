@@ -15,15 +15,16 @@ def create_app():
 
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    url = os.getenv('URL')
 
     CORS(app, resources={
-        r"/cards/*": {
-            "origins": ["http://localhost:3000"],
+        r"/api/cards/*": {
+            "origins": ["http://localhost:3000", "https://cardhub.pw"],
             "methods": ["GET", "POST"],
             "allow_headers": ["Content-Type"]
         },
-        r"/auth/*": {
-            "origins": ["http://localhost:3000"],
+        r"/api/auth/*": {
+            "origins": ["http://localhost:3000", "https://cardhub.pw"],
             "methods": ["GET", "POST"],
             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]
         }
