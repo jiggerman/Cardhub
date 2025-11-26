@@ -23,7 +23,8 @@ TABLE_CREATE = {
         email_verified BOOLEAN DEFAULT FALSE,
         email_verification_token VARCHAR(255),
         telegram_chat_id BIGINT, 
-        telegram_url VARCHAR(255),
+        telegram_username VARCHAR(255),
+        telegram_verified BOOLEAN DEFAULT FALSE,
         shipping_address JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
