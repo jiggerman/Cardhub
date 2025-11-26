@@ -117,10 +117,11 @@ class Database:
     from backend.src.db._cards import add_cards_from_file, transform_card_data, search_card, search_cards_with_inventory
 
     """ ---- Base_user  ---- """
-    from backend.src.db._base_user import register_new_user, get_user, get_user_by_id
+    from backend.src.db._base_user import register_new_user, get_user, get_user_by_id, update_telegram_username
+    from backend.src.db._base_user import update_username
 
 
 if __name__ == '__main__':
     db = Database()
     db.create_tables()
-    print(db.get_user(email='kurva@mail.ru'))
+
