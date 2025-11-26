@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
   AUTH: {
     REGISTER: '/auth/register',
     LOGIN: '/auth/login',
+    PROFILE: '/auth/user_update_profile',
   },
   CARDS: {
     SEARCH: '/cards/search/',
