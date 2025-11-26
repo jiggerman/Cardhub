@@ -10,6 +10,7 @@ import {
   Avatar,
   Alert,
   Grid,
+  Chip,
   Card,
   CardContent
 } from '@mui/material';
@@ -18,11 +19,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { authFetch, API_ENDPOINTS } from '../services/api';
 
 const Profile = () => {
-  const { user, logout } = useAuth(); // убрали token, т.к. он не используется
+  const { user, logout, updateUser } = useAuth(); // убрали token, т.к. он не используется
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState({
     username: '',
     email: '',
+    telegram_username: '',
+    telegram_verified: false
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,6 +36,8 @@ const Profile = () => {
       setUserData({
         username: user.username || '',
         email: user.email || '',
+        telegram_username: user.telegram_username || '',
+        telegram_verified: user.telegram_verified || false
       });
     }
   }, [user]);
@@ -49,6 +54,7 @@ const Profile = () => {
       email: user.email || '',
     });
   };
+  
 
   const handleSave = async () => {
     setLoading(true);
@@ -57,21 +63,28 @@ const Profile = () => {
 
     try {
       const response = await authFetch(API_ENDPOINTS.AUTH.PROFILE, {
-        method: 'PUT',
-        body: JSON.stringify(userData),
+        method: 'POST',
+        body: JSON.stringify({
+          username: userData.username,
+          telegram_username: userData.telegram_username
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка при обновлении профиля');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Ошибка при обновлении профиля');
       }
 
-      const updatedUser = await response.json();
-      setSuccess('Профиль успешно обновлен');
+      const result = await response.json();
+      setSuccess(result.message || 'Профиль успешно обновлен');
       setIsEditing(false);
-      
-      // Обновляем данные в localStorage
-      localStorage.setItem('user', JSON.stringify(updatedUser.user || updatedUser));
-      
+
+      // Обновляем данные через контекст
+      updateUser({
+        username: userData.username,
+        telegram_username: userData.telegram_username
+      });
+
     } catch (err) {
       setError(err.message || 'Произошла ошибка');
     } finally {
@@ -201,30 +214,56 @@ const Profile = () => {
                 margin="normal"
                 disabled={!isEditing || loading}
               />
+
+              {/* Секция Telegram */}
+              <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                <Typography variant="h6" gutterBottom>
+                  Telegram
+                </Typography>
+                
+                <TextField
+                  fullWidth
+                  label="Telegram username"
+                  name="telegram_username"
+                  value={userData.telegram_username}
+                  onChange={handleChange}
+                  margin="normal"
+                  disabled={!isEditing || loading}
+                  placeholder="username (без @)"
+                  helperText="Укажите ваш Telegram username для уведомлений"
+                />
+
+                {/* Статус подтверждения */}
+                {userData.telegram_username && (
+                  <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="body2">
+                      Статус: 
+                      <Chip 
+                        label={userData.telegram_verified ? "Подтверждён" : "Не подтверждён"} 
+                        color={userData.telegram_verified ? "success" : "warning"} 
+                        size="small"
+                        sx={{ ml: 1 }}
+                      />
+                    </Typography>
+                    
+                    {!userData.telegram_verified && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        href="https://t.me/your_bot" // Замените на ссылку вашего бота
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Подтвердить Telegram
+                      </Button>
+                    )}
+                  </Box>
+                )}
+              </Box>
             </Box>
           </Grid>
         </Grid>
 
-        {/* Дополнительная информация или карточки пользователя */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Статистика
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>
-                    Карточек создано
-                  </Typography>
-                  <Typography variant="h5">
-                    0
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
       </Paper>
     </Container>
   );
