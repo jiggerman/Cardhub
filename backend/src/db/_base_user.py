@@ -1,18 +1,7 @@
-import json
 import logging
 
 from backend.src.db._common import with_cursor
-
-
-class User:
-    def __init__(self, data):
-        self.id, self.email, self.password_hash, self.username, self.role, self.email_verified, \
-            self.email_verification_token, self.telegram_chat_id, self.telegram_url, self.shipping_address, \
-            self.created_at, self.updated_at = data
-        self.data = [dat for i, dat in enumerate(data) if i != 2]
-
-    def __str__(self):
-        return f"{self.data}"
+from backend.src.db._classes import User
 
 
 @with_cursor
@@ -54,3 +43,21 @@ def get_user_by_id(self, cursor, uuid: int) -> User or None:
     except Exception as e:
         print(f"Error in get_user err: {e}")
         logging.error(f"Error in get_user err: {e}")
+
+
+@with_cursor
+def update_telegram_username(self, cursor, uuid: int, telegram_username: str):
+    try:
+        cursor.execute("UPDATE users SET telegram_username = %s WHERE id = %s", (telegram_username, uuid,))
+    except Exception as e:
+        print(f"Error in update_telegram_username err: {e}")
+        logging.error(f"Error in update_telegram_username err: {e}")
+
+
+@with_cursor
+def update_username(self, cursor, uuid: int, username: str):
+    try:
+        cursor.execute("UPDATE users SET username = %s WHERE id = %s", (username, uuid,))
+    except Exception as e:
+        print(f"Error in update_telegram_username err: {e}")
+        logging.error(f"Error in update_telegram_username err: {e}")
