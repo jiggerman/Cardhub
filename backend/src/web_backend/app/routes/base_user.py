@@ -12,7 +12,7 @@ from backend.src.db import Database
 bp = Blueprint('base_user', __name__)
 
 
-@bp.route('/auth/register', methods=['POST'])
+@bp.route('/api/auth/register', methods=['POST'])
 def register_new_user():
     try:
         data = request.get_json()
@@ -35,7 +35,7 @@ def register_new_user():
         return jsonify({'error': str(e)}), 500
 
 
-@bp.route('/auth/login', methods=['POST'])
+@bp.route('/api/auth/login', methods=['POST'])
 def login():
     try:
         db: Database = current_app.db
@@ -67,7 +67,7 @@ def login():
         return jsonify({'message': 'Внутренняя ошибка сервера'}), 500
 
 
-@bp.route('/auth/user', methods=['GET'])
+@bp.route('/api/auth/user', methods=['GET'])
 def get_user():
     try:
         # Проверяем JWT
@@ -82,6 +82,36 @@ def get_user():
         user = db.get_user_by_id(uuid=int(current_user_id)).data
         print(user)
         return jsonify(user=user), 200
+    except Exception as err:
+        logging.error(f"Ошибка: {err}\n")
+        return jsonify({'message': 'Внутренняя ошибка сервера'}), 500
+
+
+@bp.route('/api/auth/user_update_profile', methods=['POST'])
+def update_user_profile():
+    try:
+        # Проверяем JWT
+        from flask_jwt_extended import verify_jwt_in_request
+        try:
+            verify_jwt_in_request()
+            current_user_id = get_jwt_identity()
+        except Exception as jwt_err:
+            return jsonify({'message': 'JWT Error: ' + str(jwt_err)}), 401
+
+        data = request.get_json()
+        username = data.get('username')
+        telegram_username = data.get('telegram_username')
+
+        db: Database = current_app.db
+
+        if telegram_username is not None:
+            db.update_telegram_username(uuid=current_user_id, telegram_username=telegram_username)
+
+        if username is not None:
+            db.update_username(uuid=current_user_id, username=username)
+
+        return jsonify({'message': 'Изменения сохранены'}), 200
+
     except Exception as err:
         logging.error(f"Ошибка: {err}\n")
         return jsonify({'message': 'Внутренняя ошибка сервера'}), 500

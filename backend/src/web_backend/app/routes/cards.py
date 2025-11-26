@@ -10,7 +10,7 @@ from backend.src.db import Database
 bp = Blueprint('cards', __name__)
 
 
-@bp.route('/cards/search/<string:card_name>', methods=['GET'])
+@bp.route('/api/cards/search/<string:card_name>', methods=['GET'])
 def search_cards(card_name):
     try:
         db: Database = current_app.db
