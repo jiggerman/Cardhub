@@ -95,7 +95,9 @@ const Auth = () => {
           username: userData.user[2], // Берём часть до @ из email
           role: userData.user[3],
           confirmed: userData.user[4],
-          createdAt: userData.user[9],
+          telegram_username: userData.user[8], // telegram_username
+          telegram_verified: userData.user[9], // telegram_verified
+          createdAt: userData.user[11], // created_at
           access_token: data.access_token,
           refresh_token: data.refresh_token
         };
