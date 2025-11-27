@@ -8,4 +8,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend', 'src'))
 from run import app
 
 if __name__ == "__main__":
-    app.run()
+    while True:
+        try:
+            app.run()
+        except Exception as e:
+            pass
