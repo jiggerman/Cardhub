@@ -75,7 +75,7 @@ const Auth = () => {
 
       if (data.access_token) {
         // Получаем данные пользователя
-        const userResponse = await fetch(`${API_BASE_URL}/auth/user`, {
+        const userResponse = await fetch(`${API_BASE_URL}/api/auth/user`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${data.access_token}`
@@ -95,8 +95,8 @@ const Auth = () => {
           username: userData.user[2], // Берём часть до @ из email
           role: userData.user[3],
           confirmed: userData.user[4],
-          telegram_username: userData.user[8], // telegram_username
-          telegram_verified: userData.user[9], // telegram_verified
+          telegram_username: userData.user[7], // telegram_username
+          telegram_verified: userData.user[8], // telegram_verified
           createdAt: userData.user[11], // created_at
           access_token: data.access_token,
           refresh_token: data.refresh_token
