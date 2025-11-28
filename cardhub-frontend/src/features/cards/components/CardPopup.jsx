@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import magic_card_back from '../../../Magic_card_back.webp'
+import { useCart } from '../../../contexts/CartContext';
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
@@ -55,11 +56,12 @@ function getTextColor(color) {
 }
 
 const CardPopup = ({ open, onClose, card }) => {  // ← Получаем card вместо cardId
+  const { addToCart, getCartCount, maxCartItems } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedQuality, setSelectedQuality] = useState('NM');
   const [imageError, setImageError] = useState(false);
   //const hasValidImage = card.imageUrlNormal && card.imageUrlNormal.trim() !== '';
-
+  
   /*useEffect(() => {
       if (hasValidImage) {
         setImageError(false);
@@ -76,7 +78,15 @@ const CardPopup = ({ open, onClose, card }) => {  // ← Получаем card �
   }, [open]);
 
   const handleAddToCart = () => {
-    console.log('Add to cart:', { card, quantity });
+    const currentCartCount = getCartCount();
+    
+    if (currentCartCount + quantity > maxCartItems) {
+      alert(`Максимальное количество карт в корзине - ${maxCartItems}. У вас уже ${currentCartCount} карт.`);
+      return;
+    }
+
+    addToCart(card, selectedQuality, quantity);
+    onClose(); // Закрываем попап после добавления
   };
 
   const handleClose = () => {
@@ -210,13 +220,16 @@ const CardPopup = ({ open, onClose, card }) => {  // ← Получаем card �
                       </Typography>
                       <IconButton 
                         size="small"
-                        onClick={() => setQuantity(Math.min(4, quantity + 1))}
-                        disabled={quantity >= 4}
+                        onClick={() => setQuantity(Math.min(4, quantity + 1))} // ← Ограничение 4
+                        disabled={quantity >= 4} // ← Ограничение 4
                         sx={{ border: '1px solid', borderColor: 'divider' }}
                       >
                         +
                       </IconButton>
                     </Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Макс. 4 шт. одного вида
+                    </Typography>
                   </Box>
                 </>
               ) : (
