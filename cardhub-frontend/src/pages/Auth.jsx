@@ -107,6 +107,55 @@ const Auth = () => {
           refresh_token: data.refresh_token 
         });
         navigate('/profile');
+      } else if (!isLogin && response.status === 201) {
+        // РЕГИСТРАЦИЯ - автоматически логинимся
+        console.log('Регистрация успешна, выполняем автоматический вход...');
+        
+        const loginResponse = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          }),
+        });
+        
+        const loginData = await loginResponse.json();
+        
+        if (!loginResponse.ok) {
+          throw new Error(loginData.message || 'Ошибка автоматического входа');
+        }
+        
+        // Получаем данные пользователя после логина
+        const userResponse = await fetch(`${API_BASE_URL}/api/auth/user`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${loginData.access_token}`
+          }
+        });
+        
+        const userData = await userResponse.json();
+        
+        const user = {
+          id: userData.user[0],
+          email: userData.user[1],
+          username: userData.user[2],
+          role: userData.user[3],
+          confirmed: userData.user[4],
+          telegram_username: userData.user[7],
+          telegram_verified: userData.user[8],
+          createdAt: userData.user[11],
+          access_token: loginData.access_token, 
+          refresh_token: loginData.refresh_token  
+        };
+        
+        login(user, { 
+          access_token: loginData.access_token,   
+          refresh_token: loginData.refresh_token   
+        });
+        navigate('/profile');
       }
 
     } catch (err) {
