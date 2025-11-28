@@ -50,7 +50,7 @@ def login():
 
         user = db.get_user(email=email)
 
-        if not user:
+        if user is None:
             return jsonify({'message': 'Пользователь не найден'}), 404
 
         if not bcrypt.check_password_hash(user.password_hash, password):

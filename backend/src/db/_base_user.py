@@ -25,9 +25,10 @@ def register_new_user(self, cursor, username: str, email: str, password_hash: st
 def get_user(self, cursor, email: str) -> User or None:
     try:
         cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user = User(cursor.fetchone())
+        user_data = cursor.fetchone()
 
-        return user
+        return User(user_data) if user_data is not None else None
+
     except Exception as e:
         print(f"Error in get_user err: {e}")
         logging.error(f"Error in get_user err: {e}")
