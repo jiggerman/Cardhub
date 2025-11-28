@@ -250,7 +250,7 @@ const Profile = () => {
                       <Button
                         variant="outlined"
                         size="small"
-                        href="https://t.me/your_bot" // Замените на ссылку вашего бота
+                        href="https://t.me/CardHubStore_bot" // Замените на ссылку вашего бота
                         target="_blank"
                         rel="noopener noreferrer"
                       >
