@@ -1,7 +1,8 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, Box, Avatar } from '@mui/material';
+import { IconButton, AppBar, Toolbar, Typography, Button, Box, Avatar } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import CartIcon from './CartIcon';
 
 const Header = () => {
   const { user, isAuthenticated } = useAuth();
@@ -36,7 +37,11 @@ const Header = () => {
         </Typography>
         
         {/* Аватар справа */}
-        <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton color="inherit" component={Link} to="/cart">
+            <CartIcon />
+          </IconButton>
+
           {isAuthenticated() ? (
             <Avatar 
               component={Link}
