@@ -1,8 +1,10 @@
 import React from 'react';
-import { IconButton, AppBar, Toolbar, Typography, Button, Box, Avatar } from '@mui/material';
+import { IconButton, AppBar, Toolbar, Button, Box, Avatar } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import CartIcon from './CartIcon';
+
+import logo from '../../logo.png'
 
 const Header = () => {
   const { user, isAuthenticated } = useAuth();
@@ -23,18 +25,26 @@ const Header = () => {
     <AppBar position="static" sx={{ bgcolor: 'background.paper' }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         {/* Логотип слева */}
-        <Typography 
-          variant="h6" 
-          component={Link} 
-          to="/"
-          sx={{ 
-            textDecoration: 'none', 
-            color: 'inherit',
-            fontWeight: 'bold'
+        <Box 
+          component={Link}
+          to="/" 
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'inherit'
           }}
         >
-          CARDS STORE
-        </Typography>
+          <img 
+            src={logo}
+            alt="Cardhub" 
+            style={{ 
+              height: 40, 
+              width: 'auto',
+              marginRight: 8 
+            }} 
+          />
+        </Box>
         
         {/* Аватар справа */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
