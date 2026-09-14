@@ -1,0 +1,65 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    container_name: backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - static_volume:/usr/src/app/staticfiles
+      - media_volume:/usr/src/app/media
+    env_file:
+      - ./backend/.env
+    environment:
+      - PGHOST=pgdb
+      - PGSSLMODE=disable
+      - PGCHANNELBINDING=disable
+    depends_on:
+      pgdb:
+        condition: service_healthy
+    networks:
+      - cardhub
+
+
+  pgdb:
+    image: postgres:17-alpine
+    container_name: pgdb
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      - PGSSLMODE=disable
+      - PGCHANNELBINDING=disable
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$PGUSER -d $$PGDATABASE"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cardhub
+
+  frontend:
+    build:
+      context: ./cardhub-frontend
+      dockerfile: Dockerfile.dev.frontend
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - cardhub
+
+volumes:
+  pgdbdata:
+  static_volume:
+  media_volume:
+
+networks:
+  cardhub:
+    driver: bridge
