@@ -14,8 +14,14 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('user');
     
     if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+      try {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing saved user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
@@ -35,18 +41,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (updatedUserData) => {
-    setUser(prevUser => ({
-      ...prevUser,
-      ...updatedUserData
-    }));
-    localStorage.setItem('user', JSON.stringify({
+    const updatedUser = {
       ...user,
       ...updatedUserData
-    }));
+    };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
   const isAuthenticated = () => {
-    return !!token;
+    return !!token && !!user;
+  };
+
+  const isAdmin = () => {
+    if (!user) return false;
+    return user.role === 'admin';
   };
 
   const value = {
@@ -56,6 +65,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     isAuthenticated,
+    isAdmin,
     loading
   };
 
@@ -66,7 +76,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Создаем кастомный хук useAuth
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

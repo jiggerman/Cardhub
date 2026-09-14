@@ -51,22 +51,20 @@ const Profile = () => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        const response = await authFetch(API_ENDPOINTS.AUTH.USER || '/api/auth/user', {
+        const response = await authFetch(API_ENDPOINTS.AUTH.ME, {
           method: 'GET'
         });
 
         if (response.ok) {
           const data = await response.json();
-          if (data.user) {
-            updateUser(data.user);
-            setUserData({
-              username: data.user.username || '',
-              email: data.user.email || '',
-              telegram_username: data.user.telegram_username || '',
-              telegram_verified: data.user.telegram_verified || false
-            });
-            setNewTelegramUsername(data.user.telegram_username || '');
-          }
+          updateUser(data);
+          setUserData({
+            username: data.username || '',
+            email: data.email || '',
+            telegram_username: data.telegram_username || '',
+            telegram_verified: data.telegram_verified || false
+          });
+          setNewTelegramUsername(data.telegram_username || '');
         }
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
@@ -88,8 +86,8 @@ const Profile = () => {
 
     try {
       // Сохраняем Telegram
-      const saveResponse = await authFetch(API_ENDPOINTS.AUTH.PROFILE_UPDATE || '/api/auth/user_update_profile', {
-        method: 'POST',
+      const saveResponse = await authFetch(API_ENDPOINTS.AUTH.ME, {
+        method: 'PATCH',
         body: JSON.stringify({
           telegram_username: newTelegramUsername.trim()
         }),
@@ -97,28 +95,20 @@ const Profile = () => {
 
       if (!saveResponse.ok) {
         const errorData = await saveResponse.json();
-        throw new Error(errorData.message || 'Ошибка при сохранении');
+        const message = errorData.telegram_username?.[0] || errorData.error || 'Ошибка при сохранении';
+        throw new Error(message);
       }
 
-      // Обновляем данные
-      const updatedResponse = await authFetch(API_ENDPOINTS.AUTH.USER || '/api/auth/user', {
-        method: 'GET'
+      const data = await saveResponse.json();
+      updateUser(data);
+      setUserData({
+        username: data.username || '',
+        email: data.email || '',
+        telegram_username: data.telegram_username || '',
+        telegram_verified: data.telegram_verified || false
       });
+      setNewTelegramUsername(data.telegram_username || '');
 
-      if (updatedResponse.ok) {
-        const data = await updatedResponse.json();
-        if (data.user) {
-          updateUser(data.user);
-          setUserData({
-            username: data.user.username || '',
-            email: data.user.email || '',
-            telegram_username: data.user.telegram_username || '',
-            telegram_verified: data.user.telegram_verified || false
-          });
-          setNewTelegramUsername(data.user.telegram_username || '');
-        }
-      }
-      
       // Открываем бота
       const botUrl = `https://t.me/CardHubStore_bot`;
       window.open(botUrl, '_blank', 'noopener,noreferrer');

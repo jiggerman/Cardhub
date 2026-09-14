@@ -1,20 +1,21 @@
-export const API_BASE_URL = 'http://localhost:5000';
+export const API_BASE_URL = 'http://localhost:8000';
 
 export const API_ENDPOINTS = {
   AUTH: {
-    REGISTER: '/api/auth/register',
-    LOGIN: '/api/auth/login',
-    PROFILE: '/api/auth/user_update_profile',
+    REGISTER: '/api/register/',
+    LOGIN: '/api/login/',
+    LOGOUT: '/api/logout/',
+    ME: '/api/user/me/',
   },
   CARDS: {
-    SEARCH: '/api/cards/search/',
+    SEARCH: '/api/cards/',
   }
 };
 
 // Функция для создания авторизованного запроса
 export const authFetch = async (url, options = {}) => {
   const token = localStorage.getItem('token');
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,

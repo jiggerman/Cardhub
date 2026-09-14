@@ -51,12 +51,13 @@ const Auth = () => {
 
     try {
       const url = isLogin ? API_ENDPOINTS.AUTH.LOGIN : API_ENDPOINTS.AUTH.REGISTER;
-      const payload = isLogin 
+      const payload = isLogin
         ? { email: formData.email, password: formData.password }
-        : { 
-            username: formData.username, 
-            email: formData.email, 
-            password: formData.password 
+        : {
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            password2: formData.confirmPassword
           };
 
       const response = await fetch(`${API_BASE_URL}${url}`, {
@@ -70,93 +71,34 @@ const Auth = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Произошла ошибка');
+        // DRF возвращает ошибки валидации как {field: [сообщения]} либо {error: '...'}
+        const message = data.error
+          || (typeof data === 'object' ? Object.values(data).flat().join(' ') : null)
+          || 'Произошла ошибка';
+        throw new Error(message);
       }
 
-      if (data.access_token) {
-        // Получаем данные пользователя
-        const userResponse = await fetch(`${API_BASE_URL}/api/auth/user`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${data.access_token}`
-          }
-        });
-        
-        if (!userResponse.ok) {
-          throw new Error('Ошибка получения данных пользователя');
+      // И вход, и регистрация сразу возвращают { status, tokens: { access, refresh } }
+      const { access, refresh } = data.tokens;
+
+      const userResponse = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.ME}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${access}`
         }
-        
-        const userData = await userResponse.json();
-        
-        // Преобразуем данные пользователя в удобный формат
-        const user = {
-          id: userData.user[0],
-          email: userData.user[1],
-          username: userData.user[2], // Берём часть до @ из email
-          role: userData.user[3],
-          confirmed: userData.user[4],
-          telegram_username: userData.user[7], // telegram_username
-          telegram_verified: userData.user[8], // telegram_verified
-          createdAt: userData.user[11], // created_at
-          access_token: data.access_token,
-          refresh_token: data.refresh_token
-        };
-        
-        login(user, { 
-          access_token: data.access_token,
-          refresh_token: data.refresh_token 
-        });
-        navigate('/profile');
-      } else if (!isLogin && response.status === 201) {
-        // РЕГИСТРАЦИЯ - автоматически логинимся
-        console.log('Регистрация успешна, выполняем автоматический вход...');
-        
-        const loginResponse = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password
-          }),
-        });
-        
-        const loginData = await loginResponse.json();
-        
-        if (!loginResponse.ok) {
-          throw new Error(loginData.message || 'Ошибка автоматического входа');
-        }
-        
-        // Получаем данные пользователя после логина
-        const userResponse = await fetch(`${API_BASE_URL}/api/auth/user`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${loginData.access_token}`
-          }
-        });
-        
-        const userData = await userResponse.json();
-        
-        const user = {
-          id: userData.user[0],
-          email: userData.user[1],
-          username: userData.user[2],
-          role: userData.user[3],
-          confirmed: userData.user[4],
-          telegram_username: userData.user[7],
-          telegram_verified: userData.user[8],
-          createdAt: userData.user[11],
-          access_token: loginData.access_token, 
-          refresh_token: loginData.refresh_token  
-        };
-        
-        login(user, { 
-          access_token: loginData.access_token,   
-          refresh_token: loginData.refresh_token   
-        });
-        navigate('/profile');
+      });
+
+      if (!userResponse.ok) {
+        throw new Error('Ошибка получения данных пользователя');
       }
+
+      const user = await userResponse.json();
+
+      login(user, {
+        access_token: access,
+        refresh_token: refresh
+      });
+      navigate('/profile');
 
     } catch (err) {
       setError(err.message || 'Произошла ошибка');
