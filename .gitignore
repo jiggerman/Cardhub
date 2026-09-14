@@ -1,6 +1,5 @@
 # created by virtualenv automatically
 .idea
-.gitignore
 Lib
 Scripts
 pyvenv.cfg
