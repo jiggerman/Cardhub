@@ -1,0 +1,20 @@
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci --legacy-peer-deps
+
+COPY . .
+
+# Значение встраивается в бандл на этапе сборки — переопределяйте через:
+#   docker build --build-arg REACT_APP_API_BASE_URL=https://api.cardhub.pw -f Dockerfile.frontend .
+ARG REACT_APP_API_BASE_URL=http://localhost:8000
+ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
+
+RUN npm run build
+
+# Раздачей занимается хостовый nginx (/etc/nginx/sites-available/cardhub.pw), поэтому
+# контейнеру не нужно ничего слушать — он только выкладывает готовую сборку в volume,
+# смонтированный с хоста в /output (см. пример команды запуска в README/чате).
+CMD ["sh", "-c", "rm -rf /output/* && cp -r /app/build/. /output/"]
