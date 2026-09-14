@@ -2,7 +2,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.dev.backend
+      dockerfile: Dockerfile.backend
     container_name: backend
     restart: unless-stopped
     ports:
@@ -22,7 +22,6 @@ services:
     networks:
       - cardhub
 
-
   pgdb:
     image: postgres:17-alpine
     container_name: pgdb
@@ -32,8 +31,6 @@ services:
     environment:
       - PGSSLMODE=disable
       - PGCHANNELBINDING=disable
-    ports:
-      - "5432:5432"
     volumes:
       - pgdbdata:/var/lib/postgresql/data
     healthcheck:
@@ -47,13 +44,11 @@ services:
   frontend:
     build:
       context: ./cardhub-frontend
-      dockerfile: Dockerfile.dev.frontend
-    container_name: frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    networks:
-      - cardhub
+      dockerfile: Dockerfile.frontend
+      args:
+        REACT_APP_API_BASE_URL: https://cardhub.pw
+    volumes:
+      - ./cardhub-frontend/build:/output
 
 volumes:
   pgdbdata:

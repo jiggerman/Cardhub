@@ -2,7 +2,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile.dev.backend
     container_name: backend
     restart: unless-stopped
     ports:
