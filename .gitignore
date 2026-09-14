@@ -1,0 +1,17 @@
+# created by virtualenv automatically
+.idea
+.gitignore
+Lib
+Scripts
+pyvenv.cfg
+.env*
+default-cards.json
+.vscode
+
+# Python
+__pycache__/
+*.pyc
+db.sqlite3
+
+# Node
+node_modules/
