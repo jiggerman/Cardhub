@@ -118,7 +118,7 @@ const CardPopup = ({ open, onClose, card }) => {  // ← Получаем card �
       <DialogContent sx={{ p: 3 }}>
         <Grid container spacing={4}>
           {/* Medium изображение карты */}
-          <Grid item xs={12} md={6} sx={{ pr: 1 }}>
+          <Grid size={{ xs: 12, md: 6 }} sx={{ pr: 1 }}>
             <Box
               component="img"
               src={imageError ? magic_card_back : card.imageUrlNormal}
@@ -136,7 +136,7 @@ const CardPopup = ({ open, onClose, card }) => {  // ← Получаем card �
           </Grid>
 
           {/* Информация о карте */}
-          <Grid item xs={12} md={6} sx={{ width: '100%', flex: 1 }}>
+          <Grid size={{ xs: 12, md: 6 }} sx={{ width: '100%', flex: 1 }}>
             <Typography variant="h4" gutterBottom fontWeight="600">
               {card.name}
             </Typography>

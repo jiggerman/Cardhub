@@ -56,7 +56,7 @@ const CardGrid = ({ searchQuery, onCardClick }) => {
       
       <Grid container spacing={3} justifyContent="center">
         {cards.map((card) => (
-          <Grid item key={card.id}>
+          <Grid key={card.id}>
             <Card card={card} onCardClick={onCardClick} />
           </Grid>
         ))}
