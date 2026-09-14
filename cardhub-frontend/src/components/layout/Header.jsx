@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconButton, AppBar, Toolbar, Button, Box, Avatar } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import CartIcon from './CartIcon';
@@ -22,56 +23,74 @@ const Header = () => {
   };
 
   return (
-    <AppBar position="static" sx={{ bgcolor: 'background.paper' }}>
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
+    <AppBar position="sticky" elevation={0}>
+      <Toolbar sx={{ justifyContent: 'space-between', py: 0.5 }}>
         {/* Логотип слева */}
-        <Box 
+        <Box
           component={Link}
-          to="/" 
+          to="/"
           sx={{
             display: 'flex',
             alignItems: 'center',
             textDecoration: 'none',
-            color: 'inherit'
+            color: 'inherit',
+            transition: 'transform 0.2s ease',
+            '&:hover': { transform: 'scale(1.03)' }
           }}
         >
-          <img 
+          <img
             src={logo}
-            alt="Cardhub" 
-            style={{ 
-              height: 40, 
+            alt="Cardhub"
+            style={{
+              height: 36,
               width: 'auto',
-              marginRight: 8 
-            }} 
+              marginRight: 8
+            }}
           />
         </Box>
-        
+
         {/* Аватар справа */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton color="inherit" component={Link} to="/cart">
+          <IconButton
+            color="inherit"
+            component={Link}
+            to="/cart"
+            sx={{
+              transition: 'background-color 0.18s ease',
+              '&:hover': { backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.12) }
+            }}
+          >
             <CartIcon />
           </IconButton>
 
           {isAuthenticated() ? (
-            <Avatar 
+            <Avatar
               component={Link}
               to="/profile"
-              sx={{ 
-                width: 32, 
-                height: 32, 
-                bgcolor: 'primary.main',
+              sx={{
+                width: 34,
+                height: 34,
                 fontSize: '0.9rem',
+                fontWeight: 700,
                 cursor: 'pointer',
-                textDecoration: 'none'
+                textDecoration: 'none',
+                border: '2px solid',
+                borderColor: (theme) => alpha(theme.palette.primary.light, 0.5),
+                transition: 'transform 0.18s ease, border-color 0.18s ease',
+                '&:hover': {
+                  transform: 'scale(1.06)',
+                  borderColor: 'primary.light',
+                }
               }}
             >
               {getInitials()}
             </Avatar>
           ) : (
-            <Button 
-              color="inherit" 
-              component={Link} 
+            <Button
+              variant="outlined"
+              component={Link}
               to="/auth"
+              sx={{ borderRadius: 999, px: 2.5 }}
             >
               Войти
             </Button>

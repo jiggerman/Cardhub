@@ -21,6 +21,10 @@ import { styled } from '@mui/material/styles';
 import magic_card_back from '../../../Magic_card_back.webp'
 import { useCart } from '../../../contexts/CartContext';
 
+// Скругление изображения карты в попапе. В px, чтобы не умножалось на theme.shape.borderRadius
+// (см. такую же константу CARD_IMAGE_RADIUS в features/cards/components/Card.jsx).
+const CARD_IMAGE_RADIUS = '17px';
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     backgroundColor: theme.palette.background.paper,
@@ -128,7 +132,7 @@ const CardPopup = ({ open, onClose, card }) => {  // ← Получаем card �
                 width: '100%',
                 maxWidth: 400,
                 height: 'auto',
-                borderRadius: 6,
+                borderRadius: CARD_IMAGE_RADIUS,
                 backgroundColor: '#2d2d2d',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
               }}

@@ -7,25 +7,34 @@ import {
   Box,
   Chip
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { styled, alpha } from '@mui/material/styles';
 import magic_card_back from '../../../Magic_card_back.webp'
 
 const CARD_WIDTH = 245;
 const CARD_HEIGHT = 341.39;
+// Скругление именно картинки карты. Задано в px и не завязано на theme.shape.borderRadius
+// (MUI умножает числовые sx-значения borderRadius на theme.shape.borderRadius, поэтому здесь нужна строка с единицей).
+// Важно: сами изображения Scryfall (image_uris.normal) уже содержат белый фон в углах
+// (у физической карты скруглённые углы, а файл-скан прямоугольный). Проверено пиксельным анализом:
+// при ширине карточки ~245px нужно минимум 14px, иначе в углах виден белый обрезок этого фона.
+const CARD_IMAGE_RADIUS = '14px';
 
 const StatusBadge = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'status'
 })(({ theme, status }) => ({
   position: 'absolute',
-  top: 8,
-  right: 8,
-  padding: '4px 8px',
-  borderRadius: '4px',
+  top: 10,
+  right: 10,
+  padding: '4px 10px',
+  borderRadius: 999,
   fontSize: '0.7rem',
-  fontWeight: 'bold',
+  fontWeight: 700,
+  letterSpacing: 0.2,
   zIndex: 1,
-  backgroundColor: status === 'preorder' ? '#ff9800' : '#4caf50',
-  color: 'white',
+  backdropFilter: 'blur(6px)',
+  backgroundColor: status === 'preorder' ? 'rgba(255, 152, 0, 0.88)' : 'rgba(76, 175, 80, 0.88)',
+  color: '#0f0b17',
+  boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
 }));
 
 const ColorChip = styled(Chip, {
@@ -56,16 +65,19 @@ function getTextColor(color) {
 
 const StyledCard = styled(MuiCard)(({ theme }) => ({
   cursor: 'pointer',
-  transition: 'all 0.3s ease',
+  transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
   width: CARD_WIDTH,
   height: CARD_HEIGHT + 120,
   display: 'flex',
   flexDirection: 'column',
   position: 'relative',
+  // Скругление всей карточки = CARD_IMAGE_RADIUS, чтобы верх картинки и низ текстового блока совпадали визуально
+  borderRadius: CARD_IMAGE_RADIUS,
+  overflow: 'hidden',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme.shadows[8],
-    borderColor: theme.palette.primary.main,
+    transform: 'translateY(-6px)',
+    boxShadow: `0 16px 32px -8px ${alpha(theme.palette.primary.main, 0.45)}`,
+    borderColor: alpha(theme.palette.primary.main, 0.6),
   },
 }));
 
@@ -111,8 +123,11 @@ const Card = ({ card, onCardClick }) => {
         image={!hasValidImage || imageError ? magic_card_back : card.imageUrlNormal}
         alt={card.name || 'Magic Card'}
         onError={handleImageError}
-        sx={{ 
-          borderRadius: 4,
+        sx={{
+          // Скругление на всех 4 углах картинки: сам файл Scryfall (image_uris.normal) содержит
+          // белый фон в углах (см. комментарий у CARD_IMAGE_RADIUS) — это касается не только верха,
+          // но и низа картинки, хотя низ визуально примыкает к CardContent, а не является углом карточки.
+          borderRadius: CARD_IMAGE_RADIUS,
           objectFit: 'cover',
           backgroundColor: '#2d2d2d',
           width: '100%',

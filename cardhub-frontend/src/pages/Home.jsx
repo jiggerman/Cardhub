@@ -40,7 +40,28 @@ const Home = () => {
           gap: 4,
           transition: 'min-height 0.3s ease'
         }}
-      >      
+      >
+        {!searchQuery && (
+          <Box sx={{ textAlign: 'center', px: 2 }}>
+            <Typography
+              variant="h3"
+              component="h1"
+              sx={{
+                mb: 1.5,
+                backgroundImage: (theme) =>
+                  `linear-gradient(135deg, ${theme.palette.text.primary}, ${theme.palette.primary.light})`,
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+              }}
+            >
+              Найди свою карту
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Поиск среди тысяч карт Magic: The Gathering в наличии и на предзаказ
+            </Typography>
+          </Box>
+        )}
         <SearchBar onSearch={handleSearch} />
       </Box>
       
