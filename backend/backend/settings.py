@@ -32,6 +32,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
+
 
 # Application definition
 
@@ -144,7 +148,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# Не 'static/' — этот префикс уже занят статикой React-сборки (build/static/js|css/...)
+# на том же домене, конфликт префиксов даёт 404 на файлы фронтенда.
+STATIC_URL = 'django-static/'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
