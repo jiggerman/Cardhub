@@ -1,8 +1,8 @@
-import json
 import logging
 from pathlib import Path
+
+import ijson
 from django.core.management.base import BaseCommand
-from django.db import transaction
 from tqdm import tqdm
 from cards.models import Card
 
@@ -23,29 +23,30 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f'Файл не найден: {file_path}'))
             return
 
-        self.stdout.write(f' Читаем {file_path}...')
-        with open(file_path, 'r', encoding='utf-8') as f:
-            cards_data = json.load(f)
-
-        self.stdout.write(f'Найдено {len(cards_data)} записей.')
+        self.stdout.write(f'Читаем {file_path} потоково (весь файл в память не грузим)...')
 
         batch = []
         created_count = 0
         skipped_count = 0
 
-        for card_json in tqdm(cards_data, desc='Обработка карт', unit='карта'):
-            try:
-                card_obj = self._transform_card_data(card_json)
-                batch.append(card_obj)
+        # ijson читает файл потоково, элемент за элементом — в памяти в любой момент
+        # держим только один batch, а не весь JSON (файл Scryfall может весить сотни МБ)
+        with open(file_path, 'rb') as f:
+            cards_data = ijson.items(f, 'item')
 
-                if len(batch) >= batch_size:
-                    c, s = self._save_batch(batch)
-                    created_count += c
-                    skipped_count += s
-                    batch.clear()
-            except Exception as e:
-                logger.error(f"Ошибка обработки карты {card_json.get('name', 'Unknown')}: {e}")
-                skipped_count += 1
+            for card_json in tqdm(cards_data, desc='Обработка карт', unit='карта'):
+                try:
+                    card_obj = self._transform_card_data(card_json)
+                    batch.append(card_obj)
+
+                    if len(batch) >= batch_size:
+                        c, s = self._save_batch(batch)
+                        created_count += c
+                        skipped_count += s
+                        batch.clear()
+                except Exception as e:
+                    logger.error(f"Ошибка обработки карты {card_json.get('name', 'Unknown')}: {e}")
+                    skipped_count += 1
 
         # Сохраняем остаток
         if batch:

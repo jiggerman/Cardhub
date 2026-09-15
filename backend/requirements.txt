@@ -7,3 +7,4 @@ psycopg2-binary==2.9.13
 python-dotenv==1.0.1
 tqdm==4.65.0
 gunicorn==22.0.0
+ijson==3.3.0
