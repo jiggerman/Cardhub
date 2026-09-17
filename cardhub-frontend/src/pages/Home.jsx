@@ -32,27 +32,22 @@ const Home = () => {
             {showcase.map((card, index) => <div className={`fan-card fan-card--${card.hue}`} key={card.name} style={{ '--i': index }}><img src={cardBack} alt="" /><span>{card.name}</span></div>)}
           </div>
         </div>
-        <div className="hero-metrics container">
-          <div><strong>18 000+</strong><span>карт в каталоге</span></div>
-          <div><strong>3 формата</strong><span>покупка, заказ, предзаказ</span></div>
-          <div><strong>1–2 дня</strong><span>на сборку из наличия</span></div>
-        </div>
       </section>
 
       <section className="section section--steps">
         <div className="container">
-          <div className="section-heading"><span className="eyebrow">Как это работает</span><h2>От запроса до колоды</h2><p>Мы убрали лишние шаги и показали главное прямо в каталоге.</p></div>
+          <div className="section-heading"><span className="eyebrow">Покупка карт</span><h2>Как оформить заказ</h2><p>Найдите нужную карту, добавьте её в корзину и укажите данные для доставки.</p></div>
           <div className="feature-grid">
-            <article><span className="feature-index">01</span><Icon name="search" size={28} /><h3>Ищите точно</h3><p>Название, сет и номер коллекции — как в Scryfall, но сразу с локальными остатками и ценой.</p></article>
-            <article><span className="feature-index">02</span><Icon name="package" size={28} /><h3>Выберите способ</h3><p>Заберите карту из наличия, забронируйте пополнение или закажите её у партнёра.</p></article>
-            <article><span className="feature-index">03</span><Icon name="clock" size={28} /><h3>Следите за статусом</h3><p>Этапы сверки, сборки и доставки собраны в личном кабинете без писем и таблиц.</p></article>
+            <article><span className="feature-index">01</span><Icon name="search" size={28} /><h3>Найдите карту</h3><p>Введите название карты. В результатах поиска будут указаны доступные издания, цены и остатки.</p></article>
+            <article><span className="feature-index">02</span><Icon name="package" size={28} /><h3>Добавьте в корзину</h3><p>Выберите состояние и количество. Если карты нет в наличии, оформите предзаказ или заказ у партнёра.</p></article>
+            <article><span className="feature-index">03</span><Icon name="clock" size={28} /><h3>Оформите заказ</h3><p>Укажите контакты и способ доставки. Текущий статус заказа отображается в личном кабинете.</p></article>
           </div>
         </div>
       </section>
 
       <section className="section">
         <div className="container service-banner">
-          <div><span className="eyebrow">Подбор карт</span><h2>Не нашли нужное издание?</h2><p>Оставьте заказ — мы проверим предложения партнёров и свяжемся до оплаты.</p></div>
+          <div><span className="eyebrow">Нет в наличии</span><h2>Ищете конкретную карту?</h2><p>Найдите её в каталоге и оформите предзаказ или заказ у партнёра.</p></div>
           <Link to="/catalog" className="button button--light">Перейти в каталог <Icon name="arrow" size={18} /></Link>
         </div>
       </section>

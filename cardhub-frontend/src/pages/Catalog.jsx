@@ -39,7 +39,7 @@ const Catalog = () => {
               <span className="catalog-toolbar__note">{query ? 'Показываем совпадения из каталога' : 'Введите название карты, чтобы начать поиск'}</span>
               <div className="view-toggle"><button className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')} aria-label="Сетка"><Icon name="grid" /></button><button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')} aria-label="Список"><Icon name="list" /></button></div>
             </div>
-            {query ? <CardGrid searchQuery={query} view={view} onAdd={(card) => addToCart(card, 'NM', 1, card.inStock > 0 ? 'purchase' : 'reservation')} /> : <div className="catalog-empty"><Icon name="search" size={36} /><h2>Каталог начинается с поиска</h2><p>Попробуйте «Sol Ring», «LTR» или точное название карты.</p><div className="quick-links">{['Sol Ring', 'The One Ring', 'Lightning Bolt'].map((item) => <button key={item} onClick={() => search(item)}>{item}</button>)}</div></div>}
+            {query ? <CardGrid searchQuery={query} view={view} onAdd={(card) => addToCart(card, 'NM', 1, card.inStock > 0 ? 'purchase' : 'reservation')} /> : <div className="catalog-empty"><Icon name="search" size={36} /><h2>Найдите нужную карту</h2><p>Введите название карты на английском языке или выберите один из примеров.</p><div className="quick-links">{['Sol Ring', 'The One Ring', 'Lightning Bolt'].map((item) => <button key={item} onClick={() => search(item)}>{item}</button>)}</div></div>}
           </div>
         </div>
       </main>
