@@ -4,6 +4,7 @@ Lib
 Scripts
 pyvenv.cfg
 .env*
+!backend/.env.example
 default-cards.json
 .vscode
 

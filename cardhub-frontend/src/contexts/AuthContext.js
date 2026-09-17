@@ -1,5 +1,6 @@
 // contexts/AuthContext.js
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { API_BASE_URL, API_ENDPOINTS } from '../services/api';
 
 export const AuthContext = createContext();
 
@@ -17,6 +18,18 @@ export const AuthProvider = ({ children }) => {
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
+        fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.ME}`, {
+          headers: { Authorization: `Bearer ${savedToken}` },
+        }).then(async (response) => {
+          if (!response.ok) throw new Error('Session expired');
+          const currentUser = await response.json();
+          setUser(currentUser);
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        }).catch(() => {
+          setToken(null); setUser(null);
+          localStorage.removeItem('token'); localStorage.removeItem('user'); localStorage.removeItem('refreshToken');
+        }).finally(() => setLoading(false));
+        return;
       } catch (error) {
         console.error('Error parsing saved user data:', error);
         localStorage.removeItem('token');
@@ -30,14 +43,26 @@ export const AuthProvider = ({ children }) => {
     setToken(tokens.access_token);
     setUser(userData);
     localStorage.setItem('token', tokens.access_token);
+    if (tokens.refresh_token) localStorage.setItem('refreshToken', tokens.refresh_token);
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      try {
+        await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+      } catch { /* Local logout must still complete if the API is unavailable. */ }
+    }
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
   };
 
   const updateUser = (updatedUserData) => {

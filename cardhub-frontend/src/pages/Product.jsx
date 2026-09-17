@@ -23,6 +23,11 @@ const Product = () => {
   const [added, setAdded] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
 
+  const purchaseOffers = (card?.offers || []).filter((offer) => offer.quantity > 0);
+  const selectedOffer = purchaseOffers.filter((offer) => offer.quality === quality).sort((a, b) => a.price - b.price)[0];
+  const selectedPrice = selected === 'purchase' ? selectedOffer?.price : null;
+  const maxQuantity = selected === 'purchase' ? Math.min(4, selectedOffer?.quantity || 1) : 4;
+
   useEffect(() => {
     if (card) return;
     cardsAPI.getCard(cardId).then((value) => { setCard(value); setSelected(value.inStock > 0 ? 'purchase' : 'reservation'); setQuality(value.availableQualities?.[0] || 'NM'); }).catch(() => setCard(null)).finally(() => setLoading(false));
@@ -32,7 +37,7 @@ const Product = () => {
   if (!card) return <div className="full-state"><h1>Карта не найдена</h1><Link className="button button--primary" to="/catalog">Вернуться в каталог</Link></div>;
 
   const add = () => { addToCart(card, quality, quantity, selected); setAdded(true); setTimeout(() => setAdded(false), 2200); };
-  const qualities = card.availableQualities?.length ? card.availableQualities : ['NM', 'SP', 'MP'];
+  const qualities = selected === 'purchase' && card.availableQualities?.length ? card.availableQualities : ['NM', 'SP', 'MP', 'HP'];
 
   return (
     <main className="section product-page">
@@ -43,9 +48,9 @@ const Product = () => {
           <div className="product-info__top"><span className="eyebrow">{card.setCode} · #{card.collectorNumber}</span><h1>{card.name}</h1><p>{card.type || card.setName}</p></div>
           <div className="fact-row"><div><span>Сет</span><strong>{card.setName || card.setCode}</strong></div><div><span>Цвет</span><strong>{card.color || '—'}</strong></div><div><span>На складе</span><strong>{card.inStock || 0} шт.</strong></div></div>
           <div className="buy-box">
-            <div className="buy-options">{options.map((option) => { const disabled = option.type === 'purchase' && card.inStock === 0; return <button disabled={disabled} className={selected === option.type ? 'active' : ''} onClick={() => setSelected(option.type)} key={option.type}><small>{option.badge}</small><strong>{option.title}</strong><span>{disabled ? 'Нет в наличии' : option.note}</span></button>; })}</div>
-            <div className="buy-controls"><div><label>Состояние</label><div className="choice-row">{qualities.map((item) => <button key={item} className={quality === item ? 'active' : ''} onClick={() => setQuality(item)}>{item}</button>)}</div></div><div><label>Количество</label><div className="stepper"><button onClick={() => setQuantity(Math.max(1, quantity - 1))}><Icon name="minus" /></button><span>{quantity}</span><button onClick={() => setQuantity(Math.min(4, quantity + 1))}><Icon name="plus" /></button></div></div></div>
-            <div className="buy-total"><div><span>{selected === 'import' ? 'Ориентировочная цена' : 'Итого'}</span><strong>{card.minPrice ? `${(Number(card.minPrice) * quantity).toLocaleString('ru-RU')} ₽` : 'Уточняется'}</strong></div><button className="button button--primary" onClick={add}>{added ? <><Icon name="check" /> Добавлено</> : <><Icon name="cart" /> В корзину</>}</button></div>
+            <div className="buy-options">{options.map((option) => { const disabled = option.type === 'purchase' && card.inStock === 0; return <button disabled={disabled} className={selected === option.type ? 'active' : ''} onClick={() => { setSelected(option.type); setQuantity(1); if (option.type === 'purchase' && !card.availableQualities.includes(quality)) setQuality(card.availableQualities[0] || 'NM'); }} key={option.type}><small>{option.badge}</small><strong>{option.title}</strong><span>{disabled ? 'Нет в наличии' : option.note}</span></button>; })}</div>
+            <div className="buy-controls"><div><label>Состояние</label><div className="choice-row">{qualities.map((item) => <button key={item} className={quality === item ? 'active' : ''} onClick={() => { setQuality(item); setQuantity(1); }}>{item}</button>)}</div></div><div><label>Количество</label><div className="stepper"><button onClick={() => setQuantity(Math.max(1, quantity - 1))}><Icon name="minus" /></button><span>{quantity}</span><button onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}><Icon name="plus" /></button></div></div></div>
+            <div className="buy-total"><div><span>{selected === 'purchase' ? 'Итого' : 'Цена после подтверждения'}</span><strong>{selectedPrice ? `${(Number(selectedPrice) * quantity).toLocaleString('ru-RU')} ₽` : 'Уточняется'}</strong></div><button className="button button--primary" onClick={add} disabled={selected === 'purchase' && !selectedOffer}>{added ? <><Icon name="check" /> Добавлено</> : <><Icon name="cart" /> В корзину</>}</button></div>
           </div>
           <div className="trust-row"><span><Icon name="shield" /> Безопасная оплата</span><span><Icon name="package" /> Бережная упаковка</span></div>
         </div>

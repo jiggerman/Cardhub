@@ -19,14 +19,28 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (card, quality = 'NM', quantity = 1, orderType = card.isPreorder ? 'reservation' : 'purchase') => {
     setCartItems((items) => {
+      const availableOffers = (card.offers || []).filter((item) => item.quantity > 0).sort((a, b) => a.price - b.price);
+      const offer = orderType === 'purchase'
+        ? availableOffers.find((item) => item.quality === quality) || availableOffers[0]
+        : null;
+      if (orderType === 'purchase' && !offer) return items;
+      const selectedQuality = offer?.quality || quality;
       const count = items.reduce((sum, item) => sum + item.quantity, 0);
       if (count + quantity > MAX_CART_ITEMS) return items;
-      const index = items.findIndex((item) => item.card.id === card.id && item.quality === quality && item.orderType === orderType);
+      const index = items.findIndex((item) => item.card.id === card.id && item.quality === selectedQuality && item.orderType === orderType);
       if (index >= 0) {
         const nextQuantity = Math.min(MAX_ITEM_QUANTITY, items[index].quantity + quantity);
         return items.map((item, itemIndex) => itemIndex === index ? { ...item, quantity: nextQuantity } : item);
       }
-      return [...items, { card, quality, quantity: Math.min(quantity, MAX_ITEM_QUANTITY), orderType, addedAt: new Date().toISOString() }];
+      return [...items, {
+        card,
+        quality: selectedQuality,
+        quantity: Math.min(quantity, offer ? offer.quantity : MAX_ITEM_QUANTITY, MAX_ITEM_QUANTITY),
+        orderType,
+        offerId: offer?.id || null,
+        unitPrice: offer?.price ?? card.minPrice ?? null,
+        addedAt: new Date().toISOString(),
+      }];
     });
   };
 
@@ -42,13 +56,14 @@ export const CartProvider = ({ children }) => {
 
   const value = useMemo(() => {
     const getItemsByType = (type) => cartItems.filter((item) => item.orderType === type);
-    const totalFor = (items) => items.reduce((sum, item) => sum + Number(item.card.minPrice || 0) * item.quantity, 0);
+    const totalFor = (items) => items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * item.quantity, 0);
     return {
       cartItems,
       addToCart,
       removeFromCart,
       updateQuantity,
       clearCart: () => setCartItems([]),
+      removeOrderTypes: (types) => setCartItems((items) => items.filter((item) => !types.includes(item.orderType))),
       getCartCount: () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
       getCartTotal: () => totalFor(cartItems),
       getItemsByType,

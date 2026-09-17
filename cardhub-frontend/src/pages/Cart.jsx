@@ -27,7 +27,7 @@ const Cart = () => {
                     <Link to={`/cards/${item.card.id}`} state={{ card: item.card }} className="cart-row__image"><img src={item.card.imageUrlNormal || cardBack} alt={item.card.name} /></Link>
                     <div className="cart-row__main"><span className={`type-badge type-badge--${item.orderType}`}>{typeLabels[item.orderType]}</span><Link to={`/cards/${item.card.id}`} state={{ card: item.card }}><h3>{item.card.name}</h3></Link><p>{item.card.setCode} · #{item.card.collectorNumber} · {item.quality}</p></div>
                     <div className="stepper"><button onClick={() => updateQuantity(item.card.id, item.quality, item.orderType, item.quantity - 1)}><Icon name="minus" /></button><span>{item.quantity}</span><button onClick={() => updateQuantity(item.card.id, item.quality, item.orderType, item.quantity + 1)}><Icon name="plus" /></button></div>
-                    <div className="cart-row__price"><strong>{item.card.minPrice ? `${(Number(item.card.minPrice) * item.quantity).toLocaleString('ru-RU')} ₽` : 'Уточняется'}</strong><button onClick={() => removeFromCart(item.card.id, item.quality, item.orderType)} aria-label="Удалить"><Icon name="trash" size={18} /></button></div>
+                    <div className="cart-row__price"><strong>{item.unitPrice ? `${(Number(item.unitPrice) * item.quantity).toLocaleString('ru-RU')} ₽` : 'Уточняется'}</strong><button onClick={() => removeFromCart(item.card.id, item.quality, item.orderType)} aria-label="Удалить"><Icon name="trash" size={18} /></button></div>
                   </article>
                 ))}
                 <Link to="/catalog" className="back-link">← Продолжить покупки</Link>

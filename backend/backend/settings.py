@@ -28,7 +28,8 @@ SECRET_KEY = os.getenv('DJANGO_TOKEN')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'False').strip().lower() in ('1', 'true', 'yes', 'on')
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOWED_ORIGINS = [o.strip() for o in os.getenv('DJANGO_CORS_ALLOWED_ORIGINS', '').split(',') if o.strip()]
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()]
 
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_spectacular',
     'corsheaders',
+    'rest_framework_simplejwt.token_blacklist',
 
     'cards.apps.CardsConfig',
     'inventory.apps.InventoryConfig',
@@ -112,6 +114,9 @@ DATABASES = {
 
 }
 
+if os.getenv('DJANGO_USE_SQLITE', 'False').strip().lower() in ('1', 'true', 'yes', 'on'):
+    DATABASES['default'] = DATABASES['local']
+
 AUTH_USER_MODEL = 'users.User'
 
 # Password validation
@@ -154,9 +159,7 @@ STATIC_URL = 'django-static/'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -1,4 +1,4 @@
-import { API_BASE_URL, API_ENDPOINTS } from './api';
+import { API_BASE_URL, API_ENDPOINTS, readApiError } from './api';
 
 export const authAPI = {
   async login(credentials) {
@@ -10,13 +10,10 @@ export const authAPI = {
       body: JSON.stringify(credentials),
     });
     
-    const data = await response.json();
-    
     if (!response.ok) {
-      throw new Error(data.message || 'Ошибка входа');
+      throw new Error(await readApiError(response, 'Ошибка входа'));
     }
-    
-    return data; // { access_token, refresh_token }
+    return response.json();
   },
 
   async register(userData) {
@@ -28,12 +25,9 @@ export const authAPI = {
       body: JSON.stringify(userData),
     });
     
-    const data = await response.json();
-    
     if (!response.ok) {
-      throw new Error(data.error || 'Ошибка регистрации');
+      throw new Error(await readApiError(response, 'Ошибка регистрации'));
     }
-    
-    return data;
+    return response.json();
   }
 };

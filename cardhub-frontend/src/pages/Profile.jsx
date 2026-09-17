@@ -9,11 +9,13 @@ const Profile = () => {
   const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
   const [telegram, setTelegram] = useState(user?.telegram_username || '');
+  const getAddress = (value) => typeof value === 'string' ? value : value?.address || '';
+  const [address, setAddress] = useState(getAddress(user?.shipping_address));
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    authFetch(API_ENDPOINTS.AUTH.ME).then(async (response) => { if (response.ok) { const data = await response.json(); updateUser(data); setTelegram(data.telegram_username || ''); } });
+    authFetch(API_ENDPOINTS.AUTH.ME).then(async (response) => { if (response.ok) { const data = await response.json(); updateUser(data); setTelegram(data.telegram_username || ''); setAddress(getAddress(data.shipping_address)); } });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -27,7 +29,17 @@ const Profile = () => {
     } catch (error) { setMessage(error.message); } finally { setSaving(false); }
   };
 
-  const exit = () => { logout(); navigate('/'); };
+  const saveAddress = async () => {
+    setSaving(true); setMessage('');
+    try {
+      const response = await authFetch(API_ENDPOINTS.AUTH.ME, { method: 'PATCH', body: JSON.stringify({ shipping_address: { address: address.trim() } }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error('Не удалось сохранить адрес');
+      updateUser(data); setMessage('Адрес доставки сохранён.');
+    } catch (error) { setMessage(error.message); } finally { setSaving(false); }
+  };
+
+  const exit = async () => { await logout(); navigate('/'); };
   const initial = (user?.username || user?.email || 'U').slice(0, 1).toUpperCase();
 
   return (
@@ -37,7 +49,7 @@ const Profile = () => {
         {message && <div className="form-message">{message}</div>}
         <section className="profile-section" id="contacts"><div><span className="eyebrow">Основное</span><h2>Контактные данные</h2><p>Имя и email берутся из аккаунта.</p></div><div className="form-grid"><label>Имя пользователя<input value={user?.username || ''} disabled /></label><label>Email<input value={user?.email || ''} disabled /></label></div></section>
         <section className="profile-section" id="telegram"><div><span className="eyebrow">Уведомления</span><h2>Telegram</h2><p>Получайте статусы заказов и сообщения о поступлении карт.</p></div><div className="telegram-connect"><div className="telegram-connect__icon"><Icon name="telegram" size={28} /></div><label>Username<input value={telegram} onChange={(event) => setTelegram(event.target.value)} placeholder="@username" /></label><button className="button button--primary" disabled={saving || !telegram.trim()} onClick={saveTelegram}>{saving ? 'Сохраняем…' : 'Сохранить'}</button></div>{user?.telegram_verified && <span className="verified"><Icon name="check" /> Telegram подтверждён</span>}</section>
-        <section className="profile-section"><div><span className="eyebrow">Доставка</span><h2>Адрес по умолчанию</h2><p>Он подставится при следующем оформлении.</p></div><label className="wide-field">Адрес<textarea defaultValue={user?.shipping_address || ''} placeholder="Город, улица, дом, квартира" /></label><button className="button button--quiet" disabled>Сохранение адреса появится после обновления API</button></section>
+        <section className="profile-section"><div><span className="eyebrow">Доставка</span><h2>Адрес по умолчанию</h2><p>Он подставится при следующем оформлении.</p></div><label className="wide-field">Адрес<textarea value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Город, улица, дом, квартира" /></label><button className="button button--quiet" disabled={saving || !address.trim()} onClick={saveAddress}>{saving ? 'Сохраняем…' : 'Сохранить адрес'}</button></section>
       </div>
     </div></main></>
   );

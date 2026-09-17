@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import (
     RegisterUserSerializer, RegisterResponseSerializer, LoginSerializer, UserSerializer,
-    UserProfileUpdateSerializer,
+    UserProfileUpdateSerializer, LogoutSerializer, LogoutResponseSerializer,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
@@ -94,8 +94,9 @@ class UserLogout(APIView):
     @extend_schema(
         summary="Выход из аккаунта",
         description="Выход из аккаунта по refresh token",
+        request=LogoutSerializer,
         responses={
-            200: OpenApiResponse(response={'success': 'Выход успешен'}, description="Выход успешный"),
+            200: OpenApiResponse(response=LogoutResponseSerializer, description="Выход успешный"),
             400: OpenApiResponse(description="Ошибки входа")
         }
     )

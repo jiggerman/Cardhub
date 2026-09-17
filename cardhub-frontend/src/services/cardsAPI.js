@@ -41,6 +41,14 @@ export const cardsAPI = {
 };
 
 function transformCard(card) {
+  const offers = (card.offers || []).map((offer) => ({
+    id: offer.id,
+    quality: offer.quality,
+    language: offer.lang,
+    foil: offer.foil,
+    quantity: offer.quantity,
+    price: Number(offer.price),
+  }));
   return {
     id: card.id,
     color: card.color,
@@ -57,6 +65,7 @@ function transformCard(card) {
     inStock: card.in_stock || 0,
     minPrice: card.min_price,
     availableQualities: card.available_qualities || [],
+    offers,
     isPreorder: (card.in_stock || 0) === 0,
   };
 }

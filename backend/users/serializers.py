@@ -39,6 +39,14 @@ class RegisterResponseSerializer(serializers.Serializer):
     tokens = serializers.DictField(child=serializers.CharField())
 
 
+class LogoutSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField()
+
+
+class LogoutResponseSerializer(serializers.Serializer):
+    success = serializers.CharField()
+
+
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -55,7 +63,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['telegram_username']
+        fields = ['telegram_username', 'shipping_address']
 
 
 
