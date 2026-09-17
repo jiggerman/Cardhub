@@ -1,360 +1,45 @@
-// pages/Profile.jsx
-import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-  Button,
-  TextField,
-  Avatar,
-  Alert,
-  Divider,
-  useMediaQuery,
-  useTheme,
-  CircularProgress
-} from '@mui/material';
-import { Telegram, CheckCircle } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { authFetch, API_ENDPOINTS } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import PageHero from '../components/ui/PageHero';
+import Icon from '../components/ui/Icon';
 
 const Profile = () => {
-  const { user, logout, updateUser } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  
-  const [userData, setUserData] = useState({
-    username: '',
-    email: '',
-    telegram_username: '',
-    telegram_verified: false
-  });
-  const [newTelegramUsername, setNewTelegramUsername] = useState('');
-  const [saveLoading, setSaveLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const { user, updateUser, logout } = useAuth();
+  const navigate = useNavigate();
+  const [telegram, setTelegram] = useState(user?.telegram_username || '');
+  const [message, setMessage] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  // Инициализация данных
   useEffect(() => {
-    if (user) {
-      setUserData({
-        username: user.username || '',
-        email: user.email || '',
-        telegram_username: user.telegram_username || '',
-        telegram_verified: user.telegram_verified || false
-      });
-      setNewTelegramUsername(user.telegram_username || '');
-    }
-  }, [user]);
-
-  // Загружаем данные при входе
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        const response = await authFetch(API_ENDPOINTS.AUTH.ME, {
-          method: 'GET'
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          updateUser(data);
-          setUserData({
-            username: data.username || '',
-            email: data.email || '',
-            telegram_username: data.telegram_username || '',
-            telegram_verified: data.telegram_verified || false
-          });
-          setNewTelegramUsername(data.telegram_username || '');
-        }
-      } catch (err) {
-        console.error('Ошибка загрузки данных:', err);
-      }
-    };
-
-    loadUserData();
+    authFetch(API_ENDPOINTS.AUTH.ME).then(async (response) => { if (response.ok) { const data = await response.json(); updateUser(data); setTelegram(data.telegram_username || ''); } });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleConnectTelegram = async () => {
-    if (!newTelegramUsername.trim()) {
-      setError('Введите Telegram username');
-      return;
-    }
-
-    setSaveLoading(true);
-    setError('');
-    setSuccess('');
-
+  const saveTelegram = async () => {
+    setSaving(true); setMessage('');
     try {
-      // Сохраняем Telegram
-      const saveResponse = await authFetch(API_ENDPOINTS.AUTH.ME, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          telegram_username: newTelegramUsername.trim()
-        }),
-      });
-
-      if (!saveResponse.ok) {
-        const errorData = await saveResponse.json();
-        const message = errorData.telegram_username?.[0] || errorData.error || 'Ошибка при сохранении';
-        throw new Error(message);
-      }
-
-      const data = await saveResponse.json();
-      updateUser(data);
-      setUserData({
-        username: data.username || '',
-        email: data.email || '',
-        telegram_username: data.telegram_username || '',
-        telegram_verified: data.telegram_verified || false
-      });
-      setNewTelegramUsername(data.telegram_username || '');
-
-      // Открываем бота
-      const botUrl = `https://t.me/CardHubStore_bot`;
-      window.open(botUrl, '_blank', 'noopener,noreferrer');
-      
-      setSuccess('Telegram username сохранен. Перейдите в бота для подтверждения');
-
-    } catch (err) {
-      setError(err.message || 'Ошибка при сохранении');
-    } finally {
-      setSaveLoading(false);
-    }
+      const response = await authFetch(API_ENDPOINTS.AUTH.ME, { method: 'PATCH', body: JSON.stringify({ telegram_username: telegram.replace('@', '').trim() }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.telegram_username?.[0] || 'Не удалось сохранить');
+      updateUser(data); setMessage('Telegram сохранён. Подтвердите его через бота.');
+    } catch (error) { setMessage(error.message); } finally { setSaving(false); }
   };
 
-  const handleTelegramChange = (e) => {
-    const value = e.target.value.replace('@', '');
-    setNewTelegramUsername(value);
-  };
-
-  const handleLogout = () => {
-    logout();
-  };
-
-  if (!user) {
-    return (
-      <Container>
-        <Typography variant="h5" align="center" sx={{ mt: 4 }}>
-          Пользователь не найден
-        </Typography>
-      </Container>
-    );
-  }
+  const exit = () => { logout(); navigate('/'); };
+  const initial = (user?.username || user?.email || 'U').slice(0, 1).toUpperCase();
 
   return (
-    <Container maxWidth="sm" sx={{ 
-      mt: isMobile ? 2 : 4, 
-      mb: isMobile ? 2 : 4,
-      px: isMobile ? 2 : 3 
-    }}>
-      <Paper elevation={isMobile ? 1 : 3} sx={{ 
-        p: isMobile ? 3 : 4,
-        borderRadius: isMobile ? 2 : 3
-      }}>
-        {/* Заголовок и кнопка выхода */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: isMobile ? 'column' : 'row',
-          justifyContent: 'space-between', 
-          alignItems: isMobile ? 'stretch' : 'center', 
-          mb: 3,
-          gap: isMobile ? 2 : 0
-        }}>
-          <Typography 
-            variant={isMobile ? "h5" : "h4"} 
-            component="h1"
-            sx={{ textAlign: isMobile ? 'center' : 'left' }}
-          >
-            Профиль пользователя
-          </Typography>
-          
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleLogout}
-            fullWidth={isMobile}
-            size={isMobile ? "medium" : "normal"}
-          >
-            Выйти
-          </Button>
-        </Box>
-
-        {/* Уведомления */}
-        {(error || success) && (
-          <Box sx={{ mb: 3 }}>
-            {error && (
-              <Alert severity="error" sx={{ mb: 1 }}>
-                {error}
-              </Alert>
-            )}
-            {success && (
-              <Alert severity="success">
-                {success}
-              </Alert>
-            )}
-          </Box>
-        )}
-
-        {/* Аватар и основная информация */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center',
-          textAlign: 'center',
-          mb: 4
-        }}>
-          <Avatar
-            sx={{ 
-              width: isMobile ? 96 : 112, 
-              height: isMobile ? 96 : 112, 
-              mb: 2,
-              fontSize: isMobile ? '2.5rem' : '3rem',
-              bgcolor: 'primary.main'
-            }}
-          >
-            {userData.username?.charAt(0).toUpperCase()}
-          </Avatar>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontWeight: 600,
-              mb: 0.5
-            }}
-          >
-            {userData.username}
-          </Typography>
-          <Typography 
-            variant="body2" 
-            color="text.secondary"
-            sx={{ 
-              wordBreak: 'break-word',
-              maxWidth: '100%',
-            }}
-          >
-            {userData.email}
-          </Typography>
-        </Box>
-
-        <Box component="form">
-          {/* Основная информация */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="subtitle1" sx={{ 
-              fontWeight: 600, 
-              mb: 2,
-              color: 'text.primary'
-            }}>
-              Основная информация
-            </Typography>
-            
-            <TextField
-              fullWidth
-              label="Имя пользователя"
-              value={userData.username}
-              margin="normal"
-              disabled
-              helperText="Имя пользователя нельзя изменить"
-              size={isMobile ? "small" : "medium"}
-            />
-
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={userData.email}
-              margin="normal"
-              disabled
-              helperText="Email нельзя изменить"
-              size={isMobile ? "small" : "medium"}
-            />
-          </Box>
-
-          <Divider sx={{ my: 3 }} />
-
-          {/* Секция Telegram */}
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              gap: 1.5,
-              mb: 2
-            }}>
-              <Telegram color="primary" />
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Telegram
-              </Typography>
-            </Box>
-
-            {!userData.telegram_verified ? (
-              <>
-                <TextField
-                  fullWidth
-                  label="Telegram username"
-                  value={newTelegramUsername}
-                  onChange={handleTelegramChange}
-                  disabled={saveLoading}
-                  placeholder="username"
-                  helperText="Введите ваш Telegram username (без @)"
-                  size="medium"
-                  sx={{ mb: 3 }}
-                />
-                
-                <Button
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  startIcon={<Telegram />}
-                  onClick={handleConnectTelegram}
-                  disabled={saveLoading || !newTelegramUsername.trim()}
-                  size="large"
-                >
-                  {saveLoading ? (
-                    <CircularProgress size={24} sx={{ color: 'white' }} />
-                  ) : (
-                    'Сохранить и подтвердить в Telegram'
-                  )}
-                </Button>
-              </>
-            ) : (
-              <Box sx={{ mt: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Telegram username"
-                  value={`@${userData.telegram_username}`}
-                  disabled
-                  helperText="Telegram подтвержден"
-                  size="medium"
-                  sx={{ mb: 3 }}
-                  InputProps={{
-                    readOnly: true,
-                    endAdornment: (
-                      <Box sx={{ display: 'flex', alignItems: 'center', color: 'success.main' }}>
-                        <CheckCircle sx={{ mr: 0.5 }} />
-                        <Typography variant="caption" color="success.main">
-                          Подтверждено
-                        </Typography>
-                      </Box>
-                    )
-                  }}
-                />
-                
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<Telegram />}
-                  href="https://t.me/CardHubStore_bot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  size="large"
-                >
-                  Открыть Telegram бота
-                </Button>
-              </Box>
-            )}
-          </Box>
-        </Box>
-      </Paper>
-    </Container>
+    <><PageHero eyebrow="Личный кабинет" title={`Привет, ${user?.username || 'коллекционер'}`} description="Контакты, уведомления и быстрый доступ к заказам." /><main className="section"><div className="container profile-layout">
+      <aside className="profile-sidebar"><div className="profile-avatar">{initial}</div><strong>{user?.username || 'Пользователь'}</strong><span>{user?.email}</span><nav><a href="#contacts" className="active">Профиль</a><Link to="/orders">Мои заказы</Link><a href="#telegram">Уведомления</a></nav><button onClick={exit}><Icon name="logout" /> Выйти</button></aside>
+      <div className="profile-content">
+        {message && <div className="form-message">{message}</div>}
+        <section className="profile-section" id="contacts"><div><span className="eyebrow">Основное</span><h2>Контактные данные</h2><p>Имя и email берутся из аккаунта.</p></div><div className="form-grid"><label>Имя пользователя<input value={user?.username || ''} disabled /></label><label>Email<input value={user?.email || ''} disabled /></label></div></section>
+        <section className="profile-section" id="telegram"><div><span className="eyebrow">Уведомления</span><h2>Telegram</h2><p>Получайте статусы заказов и сообщения о поступлении карт.</p></div><div className="telegram-connect"><div className="telegram-connect__icon"><Icon name="telegram" size={28} /></div><label>Username<input value={telegram} onChange={(event) => setTelegram(event.target.value)} placeholder="@username" /></label><button className="button button--primary" disabled={saving || !telegram.trim()} onClick={saveTelegram}>{saving ? 'Сохраняем…' : 'Сохранить'}</button></div>{user?.telegram_verified && <span className="verified"><Icon name="check" /> Telegram подтверждён</span>}</section>
+        <section className="profile-section"><div><span className="eyebrow">Доставка</span><h2>Адрес по умолчанию</h2><p>Он подставится при следующем оформлении.</p></div><label className="wide-field">Адрес<textarea defaultValue={user?.shipping_address || ''} placeholder="Город, улица, дом, квартира" /></label><button className="button button--quiet" disabled>Сохранение адреса появится после обновления API</button></section>
+      </div>
+    </div></main></>
   );
 };
 

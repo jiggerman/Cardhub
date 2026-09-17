@@ -1,6 +1,12 @@
 import { API_BASE_URL, API_ENDPOINTS } from '../services/api';
 
 export const cardsAPI = {
+  async getCard(cardId) {
+    const response = await fetch(`${API_BASE_URL}/api/card/${cardId}`);
+    if (!response.ok) throw new Error('Не удалось загрузить карту');
+    const card = await response.json();
+    return transformCard(card);
+  },
   async searchCards(cardName, page = 1, limit = 20) {
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CARDS.SEARCH}${encodeURIComponent(cardName)}`);
@@ -12,25 +18,7 @@ export const cardsAPI = {
       const data = await response.json();
       const cardsArray = data.cards || [];
 
-      const transformedCards = cardsArray.map(card => ({
-        id: card.id,
-        color: card.color,
-        setCode: card.set_code,
-        setName: card.set_name,
-        collectorNumber: card.collection_number,
-        name: card.name,
-        type: card.card_type,
-        imageUrlSmall: card.image_url_small,
-        imageUrlNormal: card.image_url_normal,
-        imageUrlLarge: card.image_url_large,
-        createdAt: card.created_at,
-        updatedAt: card.updated_at,
-        // Данные из инвентаря (агрегированы на бэкенде)
-        inStock: card.in_stock || 0,
-        minPrice: card.min_price,
-        availableQualities: card.available_qualities || [],
-        isPreorder: (card.in_stock || 0) === 0
-      }));
+      const transformedCards = cardsArray.map(transformCard);
 
       // Бэкенд пока не поддерживает серверную пагинацию — режем на клиенте
       const total = data.counter || 0;
@@ -51,3 +39,24 @@ export const cardsAPI = {
     }
   }
 };
+
+function transformCard(card) {
+  return {
+    id: card.id,
+    color: card.color,
+    setCode: card.set_code,
+    setName: card.set_name,
+    collectorNumber: card.collection_number,
+    name: card.name,
+    type: card.card_type,
+    imageUrlSmall: card.image_url_small,
+    imageUrlNormal: card.image_url_normal,
+    imageUrlLarge: card.image_url_large,
+    createdAt: card.created_at,
+    updatedAt: card.updated_at,
+    inStock: card.in_stock || 0,
+    minPrice: card.min_price,
+    availableQualities: card.available_qualities || [],
+    isPreorder: (card.in_stock || 0) === 0,
+  };
+}

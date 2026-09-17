@@ -1,168 +1,67 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const CartContext = createContext();
+const MAX_CART_ITEMS = 20;
+const MAX_ITEM_QUANTITY = 4;
 
 export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
+  const value = useContext(CartContext);
+  if (!value) throw new Error('useCart must be used within a CartProvider');
+  return value;
 };
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
-  const MAX_CART_ITEMS = 20;
-  const MAX_ITEM_QUANTITY = 4;
+  const [cartItems, setCartItems] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cart') || '[]'); } catch { return []; }
+  });
 
-  // Загружаем корзину из localStorage при монтировании
-  useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
-  }, []);
+  useEffect(() => localStorage.setItem('cart', JSON.stringify(cartItems)), [cartItems]);
 
-  // Сохраняем корзину в localStorage при изменении
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
+  const addToCart = (card, quality = 'NM', quantity = 1, orderType = card.isPreorder ? 'reservation' : 'purchase') => {
+    setCartItems((items) => {
+      const count = items.reduce((sum, item) => sum + item.quantity, 0);
+      if (count + quantity > MAX_CART_ITEMS) return items;
+      const index = items.findIndex((item) => item.card.id === card.id && item.quality === quality && item.orderType === orderType);
+      if (index >= 0) {
+        const nextQuantity = Math.min(MAX_ITEM_QUANTITY, items[index].quantity + quantity);
+        return items.map((item, itemIndex) => itemIndex === index ? { ...item, quantity: nextQuantity } : item);
+      }
+      return [...items, { card, quality, quantity: Math.min(quantity, MAX_ITEM_QUANTITY), orderType, addedAt: new Date().toISOString() }];
+    });
+  };
+
+  const removeFromCart = (cardId, quality, orderType) => setCartItems((items) =>
+    items.filter((item) => !(item.card.id === cardId && item.quality === quality && item.orderType === orderType))
+  );
+
+  const updateQuantity = (cardId, quality, orderType, quantity) => setCartItems((items) =>
+    items.map((item) => item.card.id === cardId && item.quality === quality && item.orderType === orderType
+      ? { ...item, quantity: Math.max(1, Math.min(MAX_ITEM_QUANTITY, quantity)) }
+      : item)
+  );
+
+  const value = useMemo(() => {
+    const getItemsByType = (type) => cartItems.filter((item) => item.orderType === type);
+    const totalFor = (items) => items.reduce((sum, item) => sum + Number(item.card.minPrice || 0) * item.quantity, 0);
+    return {
+      cartItems,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart: () => setCartItems([]),
+      getCartCount: () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
+      getCartTotal: () => totalFor(cartItems),
+      getItemsByType,
+      getPurchaseItems: () => getItemsByType('purchase'),
+      getPreorderItems: () => getItemsByType('reservation'),
+      getPurchaseTotal: () => totalFor(getItemsByType('purchase')),
+      getPreorderTotal: () => totalFor(getItemsByType('reservation')),
+      getPurchaseCount: () => getItemsByType('purchase').reduce((sum, item) => sum + item.quantity, 0),
+      getPreorderCount: () => getItemsByType('reservation').reduce((sum, item) => sum + item.quantity, 0),
+      maxCartItems: MAX_CART_ITEMS,
+      maxItemQuantity: MAX_ITEM_QUANTITY,
+    };
   }, [cartItems]);
 
-  const addToCart = (card, quality = 'NM', quantity = 1) => {
-    setCartItems(prevItems => {
-      // Проверяем общий лимит корзины
-      const totalItems = prevItems.reduce((sum, item) => sum + item.quantity, 0);
-      if (totalItems + quantity > MAX_CART_ITEMS) {
-        alert(`Максимальное количество карт в корзине - ${MAX_CART_ITEMS}`);
-        return prevItems;
-      }
-
-      // Ищем такую же карту с таким же качеством
-      const existingItemIndex = prevItems.findIndex(
-        item => item.card.id === card.id && item.quality === quality
-      );
-
-      if (existingItemIndex >= 0) {
-        // Проверяем лимит для конкретной карты
-        const existingQuantity = prevItems[existingItemIndex].quantity;
-        if (existingQuantity + quantity > MAX_ITEM_QUANTITY) {
-          alert(`Максимальное количество для этой карты - ${MAX_ITEM_QUANTITY} шт.`);
-          return prevItems;
-        }
-
-        // Обновляем количество существующей карты
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex].quantity += quantity;
-        return updatedItems;
-      } else {
-        // Проверяем лимит для новой карты
-        if (quantity > MAX_ITEM_QUANTITY) {
-          alert(`Максимальное количество для одной карты - ${MAX_ITEM_QUANTITY} шт.`);
-          return prevItems;
-        }
-
-        // Добавляем новую карту
-        return [...prevItems, {
-          card,
-          quality,
-          quantity,
-          addedAt: new Date().toISOString()
-        }];
-      }
-    });
-  };
-
-  const removeFromCart = (cardId, quality) => {
-    setCartItems(prevItems => 
-      prevItems.filter(item => !(item.card.id === cardId && item.quality === quality))
-    );
-  };
-
-  const updateQuantity = (cardId, quality, newQuantity) => {
-    if (newQuantity < 1) return;
-
-    setCartItems(prevItems => {
-      // Проверяем общий лимит корзины
-      const totalOtherItems = prevItems
-        .filter(item => !(item.card.id === cardId && item.quality === quality))
-        .reduce((sum, item) => sum + item.quantity, 0);
-
-      if (totalOtherItems + newQuantity > MAX_CART_ITEMS) {
-        alert(`Максимальное количество карт в корзине - ${MAX_CART_ITEMS}`);
-        return prevItems;
-      }
-
-      // Проверяем лимит для конкретной карты
-      if (newQuantity > MAX_ITEM_QUANTITY) {
-        alert(`Максимальное количество для одной карты - ${MAX_ITEM_QUANTITY} шт.`);
-        return prevItems;
-      }
-
-      return prevItems.map(item =>
-        item.card.id === cardId && item.quality === quality
-          ? { ...item, quantity: newQuantity }
-          : item
-      );
-    });
-  };
-
-  const clearCart = () => {
-    setCartItems([]);
-  };
-
-  const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.quantity * (item.card.minPrice || 0)), 0);
-  };
-
-  const getCartCount = () => {
-    return cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  };
-
-   const getPurchaseItems = () => {
-    return cartItems.filter(item => !item.card.isPreorder);
-  };
-
-  const getPreorderItems = () => {
-    return cartItems.filter(item => item.card.isPreorder);
-  };
-
-  const getPurchaseTotal = () => {
-    return getPurchaseItems().reduce((total, item) => total + (item.quantity * (item.card.minPrice || 0)), 0);
-  };
-
-  const getPreorderTotal = () => {
-    return getPreorderItems().reduce((total, item) => total + (item.quantity * (item.card.minPrice || 0)), 0);
-  };
-
-  const getPurchaseCount = () => {
-    return getPurchaseItems().reduce((sum, item) => sum + item.quantity, 0);
-  };
-
-  const getPreorderCount = () => {
-    return getPreorderItems().reduce((sum, item) => sum + item.quantity, 0);
-  };
-
-  const value = {
-    cartItems,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    getCartTotal,
-    getCartCount,
-    getPurchaseItems,
-    getPreorderItems,
-    getPurchaseTotal,
-    getPreorderTotal,
-    getPurchaseCount,
-    getPreorderCount,
-    maxCartItems: MAX_CART_ITEMS,
-    maxItemQuantity: MAX_ITEM_QUANTITY
-  };
-
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
