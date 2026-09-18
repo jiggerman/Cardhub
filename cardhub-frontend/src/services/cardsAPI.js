@@ -7,9 +7,16 @@ export const cardsAPI = {
     const card = await response.json();
     return transformCard(card);
   },
-  async searchCards(cardName, page = 1, limit = 20) {
+  async searchCards(cardName, page = 1, limit = 20, filters = {}) {
     try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CARDS.SEARCH}${encodeURIComponent(cardName)}`);
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== '' && value !== null && value !== undefined) params.set(key, value);
+      });
+      const queryString = params.toString();
+      const response = await fetch(
+        `${API_BASE_URL}${API_ENDPOINTS.CARDS.SEARCH}${encodeURIComponent(cardName)}${queryString ? `?${queryString}` : ''}`
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

@@ -51,3 +51,26 @@ class CardSerializer(serializers.ModelSerializer):
 class CardListSerializer(serializers.Serializer):
     counter = serializers.IntegerField()
     cards = CardSerializer(many=True)
+
+
+class CardFilterSerializer(serializers.Serializer):
+    color = serializers.ChoiceField(choices=Card.COLOR_CHOICES, required=False)
+    quality = serializers.ChoiceField(
+        choices=['NM', 'SP', 'MP', 'HP', 'DM'], required=False
+    )
+    in_stock = serializers.BooleanField(required=False)
+    min_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=0, required=False
+    )
+    max_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, min_value=0, required=False
+    )
+
+    def validate(self, attrs):
+        min_price = attrs.get('min_price')
+        max_price = attrs.get('max_price')
+        if min_price is not None and max_price is not None and min_price > max_price:
+            raise serializers.ValidationError({
+                'max_price': 'Максимальная цена должна быть не меньше минимальной'
+            })
+        return attrs

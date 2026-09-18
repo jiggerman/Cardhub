@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useCardSearch } from '../hooks/useCardSearch';
 import Card from './Card';
 
-const CardGrid = ({ searchQuery, view = 'grid', onAdd }) => {
+const CardGrid = ({ searchQuery, filters, view = 'grid', onAdd }) => {
   const [page, setPage] = useState(1);
-  const { cards, loading, error, total } = useCardSearch(searchQuery, page);
+  const { cards, loading, error, total } = useCardSearch(searchQuery, page, filters);
   useEffect(() => setPage(1), [searchQuery]);
 
   if (loading) return <div className="catalog-state"><span className="loader" /><strong>Ищем карты…</strong><p>Проверяем каталог и остатки.</p></div>;
