@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
 import Icon from '../components/ui/Icon';
+import { cardsAPI } from '../services/cardsAPI';
 import cardBack from '../Magic_card_back.webp';
 
 const showcase = [
@@ -14,7 +15,41 @@ const showcase = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const [featuredCards, setFeaturedCards] = useState(showcase);
   const search = (query) => navigate(`/catalog?q=${encodeURIComponent(query)}`);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all(showcase.map(async (item) => {
+      try {
+        const result = await cardsAPI.searchCards(item.name, 1, 1);
+        return { ...item, card: result.cards[0] || null };
+      } catch {
+        return item;
+      }
+    })).then((cards) => {
+      if (active) setFeaturedCards(cards);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const openCard = async (featuredCard) => {
+    if (featuredCard.card) {
+      navigate(`/cards/${featuredCard.card.id}`, { state: { card: featuredCard.card } });
+      return;
+    }
+    try {
+      const result = await cardsAPI.searchCards(featuredCard.name, 1, 1);
+      const card = result.cards[0];
+      if (card) {
+        navigate(`/cards/${card.id}`, { state: { card } });
+        return;
+      }
+    } catch {
+      // Если каталог временно недоступен, оставляем пользователю страницу поиска.
+    }
+    search(featuredCard.name);
+  };
 
   return (
     <>
@@ -28,8 +63,8 @@ const Home = () => {
             <SearchBar onSearch={search} large />
             <div className="search-hints"><span>Популярное:</span>{['The One Ring', 'Sol Ring', 'Sheoldred'].map((name) => <button key={name} onClick={() => search(name)}>{name}</button>)}</div>
           </div>
-          <div className="card-fan" aria-hidden="true">
-            {showcase.map((card, index) => <div className={`fan-card fan-card--${card.hue}`} key={card.name} style={{ '--i': index }}><img src={cardBack} alt="" /><span>{card.name}</span></div>)}
+          <div className="card-fan">
+            {featuredCards.map((item, index) => <button type="button" className={`fan-card fan-card--${item.hue}`} key={item.name} style={{ '--i': index }} onClick={() => openCard(item)} aria-label={`Открыть карту ${item.name}`}><img src={item.card?.imageUrlNormal || cardBack} alt={item.card ? `Обложка карты ${item.name}` : ''} onError={(event) => { event.currentTarget.src = cardBack; }} /><span>{item.name}</span></button>)}
           </div>
         </div>
       </section>

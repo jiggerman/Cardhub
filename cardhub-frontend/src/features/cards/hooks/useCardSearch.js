@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { cardsAPI } from '../../../services/cardsAPI';
 
-export const useCardSearch = (query, page = 1) => {
+const EMPTY_FILTERS = {};
+
+export const useCardSearch = (query, page = 1, filters = EMPTY_FILTERS) => {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -19,7 +21,7 @@ export const useCardSearch = (query, page = 1) => {
       setError(null);
 
       try {
-        const response = await cardsAPI.searchCards(query, page);
+        const response = await cardsAPI.searchCards(query, page, 20, filters);
         
         // ВСЕГДА заменяем карточки, а не добавляем
         setCards(response.cards);
@@ -33,7 +35,7 @@ export const useCardSearch = (query, page = 1) => {
     };
 
     searchCards();
-  }, [query, page]); // Зависимость от page и query
+  }, [query, page, filters]);
 
   return { cards, loading, error, total };
 };
