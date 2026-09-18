@@ -37,6 +37,12 @@ export const cardsAPI = {
       console.error('Search cards error:', error);
       throw error;
     }
+  },
+  async suggestCards(query, signal) {
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CARDS.SEARCH}${encodeURIComponent(query)}`, { signal });
+    if (!response.ok) throw new Error('Не удалось загрузить подсказки');
+    const data = await response.json();
+    return [...new Set((data.cards || []).map((card) => card.name))].slice(0, 8);
   }
 };
 
