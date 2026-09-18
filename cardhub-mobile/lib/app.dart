@@ -4,12 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/application/auth_controller.dart';
 
 class CardHubApp extends ConsumerWidget {
   const CardHubApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Восстанавливаем сессию сразу при запуске: иначе первый же экран,
+    // которому нужен вход, увидит «не авторизован», пока идёт проверка.
+    ref.watch(authProvider);
+
     return MaterialApp.router(
       title: 'CardHub',
       debugShowCheckedModeBanner: false,

@@ -1,6 +1,10 @@
 import 'package:intl/intl.dart';
 
 final _price = NumberFormat.decimalPattern('ru');
+final _dateTime = DateFormat('d MMMM, HH:mm', 'ru');
+
+/// «18 сентября, 17:05». Требует initializeDateFormatting('ru') при старте.
+String formatDateTime(DateTime value) => _dateTime.format(value);
 
 /// «1 445 ₽» — разряды разделяет неразрывный пробел, как принято в русской
 /// типографике (его же подставляет NumberFormat). Для позиций без цены

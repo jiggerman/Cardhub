@@ -6,6 +6,7 @@ import '../../features/cart/presentation/cart_page.dart';
 import '../../features/catalog/domain/card.dart';
 import '../../features/catalog/presentation/card_details_page.dart';
 import '../../features/catalog/presentation/catalog_page.dart';
+import '../../features/orders/presentation/checkout_page.dart';
 import '../../features/orders/presentation/orders_page.dart';
 import '../../features/profile/presentation/profile_page.dart';
 import 'home_shell.dart';
@@ -21,6 +22,8 @@ abstract final class AppRoutes {
 
   /// Вход открывается поверх вкладок — на него уходят и из профиля, и из оформления.
   static const auth = '/auth';
+
+  static const checkout = '$cart/checkout';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -52,7 +55,15 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
-            routes: [GoRoute(path: AppRoutes.cart, builder: (context, state) => const CartPage())],
+            routes: [
+              GoRoute(
+                path: AppRoutes.cart,
+                builder: (context, state) => const CartPage(),
+                routes: [
+                  GoRoute(path: 'checkout', builder: (context, state) => const CheckoutPage()),
+                ],
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [GoRoute(path: AppRoutes.orders, builder: (context, state) => const OrdersPage())],

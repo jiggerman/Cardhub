@@ -7,6 +7,7 @@ import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/message_state.dart';
+import '../../auth/application/auth_controller.dart';
 import '../application/cart_controller.dart';
 import 'widgets/cart_row.dart';
 
@@ -55,7 +56,7 @@ class CartPage extends ConsumerWidget {
                   const SizedBox(height: 10),
                 ],
                 const SizedBox(height: 10),
-                _Summary(summary: summary),
+                const _Summary(),
               ],
             ),
     );
@@ -81,14 +82,30 @@ class CartPage extends ConsumerWidget {
   }
 }
 
-class _Summary extends StatelessWidget {
-  const _Summary({required this.summary});
+class _Summary extends ConsumerWidget {
+  const _Summary();
 
-  final CartSummary summary;
+  /// Оформление доступно только с аккаунтом: заказ создаётся от имени
+  /// пользователя. Если входа нет — сначала открываем его, потом продолжаем.
+  Future<void> _checkout(BuildContext context, WidgetRef ref) async {
+    // Сессия может ещё восстанавливаться после запуска — дожидаемся ответа,
+    // чтобы не просить войти того, кто уже вошёл.
+    var user = await ref.read(authProvider.future);
+    if (!context.mounted) return;
+
+    if (user == null) {
+      await context.push(AppRoutes.auth);
+      if (!context.mounted) return;
+      user = ref.read(authProvider).valueOrNull;
+      if (user == null) return;
+    }
+    if (context.mounted) context.push(AppRoutes.checkout);
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final summary = ref.watch(cartSummaryProvider);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -137,9 +154,7 @@ class _Summary extends StatelessWidget {
           ],
           const SizedBox(height: 18),
           FilledButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Оформление появится на следующем этапе')),
-            ),
+            onPressed: () => _checkout(context, ref),
             child: const Text('Перейти к оформлению'),
           ),
         ],

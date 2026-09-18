@@ -47,7 +47,7 @@ class FakeCardsRepository implements CardsRepository {
   FakeCardsRepository({List<MtgCard>? cards, this.failure})
       : cards = cards ?? [MtgCard.fromJson(cardJson())];
 
-  final List<MtgCard> cards;
+  List<MtgCard> cards;
   final Object? failure;
   final queries = <String>[];
 
