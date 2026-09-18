@@ -1,17 +1,27 @@
 import 'package:cardhub_mobile/app.dart';
+import 'package:cardhub_mobile/features/auth/data/auth_repository.dart';
+import 'package:cardhub_mobile/features/auth/data/credentials_storage.dart';
 import 'package:cardhub_mobile/features/cart/data/cart_storage.dart';
 import 'package:cardhub_mobile/features/catalog/data/cards_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'fake_auth.dart';
 import 'fake_cards_repository.dart';
 import 'fake_cart_storage.dart';
 
 /// Поднимает приложение в окне размером с iPhone 16 Pro: на стандартных для
 /// тестов 800×600 плитки каталога не помещаются и тапы уходят мимо.
-/// Корзина всегда получает хранилище в памяти — SharedPreferences в тестах нет.
-Future<void> pumpApp(WidgetTester tester, {FakeCardsRepository? repository, FakeCartStorage? cartStorage}) async {
+/// Хранилища подменяются на память — ни SharedPreferences, ни Keychain
+/// в тестовом окружении нет.
+Future<void> pumpApp(
+  WidgetTester tester, {
+  FakeCardsRepository? repository,
+  FakeCartStorage? cartStorage,
+  FakeAuthRepository? authRepository,
+  FakeCredentialsStorage? credentialsStorage,
+}) async {
   tester.view.physicalSize = const Size(1179, 2556);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.resetPhysicalSize);
@@ -22,6 +32,8 @@ Future<void> pumpApp(WidgetTester tester, {FakeCardsRepository? repository, Fake
       overrides: [
         if (repository != null) cardsRepositoryProvider.overrideWithValue(repository),
         cartStorageProvider.overrideWithValue(cartStorage ?? FakeCartStorage()),
+        authRepositoryProvider.overrideWithValue(authRepository ?? FakeAuthRepository()),
+        credentialsStorageProvider.overrideWithValue(credentialsStorage ?? FakeCredentialsStorage()),
       ],
       child: const CardHubApp(),
     ),
