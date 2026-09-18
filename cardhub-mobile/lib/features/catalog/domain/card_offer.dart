@@ -29,4 +29,13 @@ class CardOffer {
         quantity: asInt(json['quantity']),
         price: asDouble(json['price']) ?? 0,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'quality': quality,
+        'lang': language,
+        'foil': foil,
+        'quantity': quantity,
+        'price': price,
+      };
 }

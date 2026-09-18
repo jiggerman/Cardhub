@@ -64,6 +64,25 @@ class MtgCard {
             .map((item) => CardOffer.fromJson(item as Map<String, dynamic>))
             .toList(),
       );
+
+  /// Те же имена полей, что у API: корзина сохраняется на устройстве и
+  /// читается обратно тем же [MtgCard.fromJson].
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'set_code': setCode,
+        'set_name': setName,
+        'collection_number': collectorNumber,
+        'color': color,
+        'card_type': type,
+        'image_url_small': imageUrlSmall,
+        'image_url_normal': imageUrlNormal,
+        'image_url_large': imageUrlLarge,
+        'in_stock': inStock,
+        'min_price': minPrice,
+        'available_qualities': availableQualities,
+        'offers': offers.map((offer) => offer.toJson()).toList(),
+      };
 }
 
 /// Результат поиска: бэкенд отдаёт всю выдачу разом (`{counter, cards}`),

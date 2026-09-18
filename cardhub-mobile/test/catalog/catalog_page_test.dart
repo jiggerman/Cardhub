@@ -99,11 +99,12 @@ void main() {
 
     // Список предложений ниже картинки — докручиваем.
     await scrollTo(tester, find.text('Предложения'));
-    expect(find.text('1 445 ₽'), findsOneWidget);
-    expect(find.text('MP'), findsOneWidget);
+    // Цена встречается и в предложении, и в итоге блока покупки
+    expect(find.text('1 445 ₽'), findsWidgets);
+    expect(find.text('818 ₽'), findsOneWidget);
 
-    await scrollTo(tester, find.text('Добавить в корзину'));
-    expect(find.widgetWithText(FilledButton, 'Добавить в корзину'), findsOneWidget);
+    await scrollTo(tester, find.widgetWithText(FilledButton, 'В корзину'));
+    expect(find.widgetWithText(FilledButton, 'В корзину'), findsOneWidget);
   });
 
   testWidgets('карта без остатков предлагает предзаказ', (tester) async {
@@ -118,10 +119,12 @@ void main() {
     await tester.tap(find.text('Lightning Bolt'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Предзаказ'), findsOneWidget);
-
     await scrollTo(tester, find.textContaining('Карты нет на складе'));
-    await scrollTo(tester, find.text('Оформить предзаказ'));
-    expect(find.widgetWithText(FilledButton, 'Оформить предзаказ'), findsOneWidget);
+    await scrollTo(tester, find.widgetWithText(FilledButton, 'В корзину'));
+
+    // Покупка недоступна, предлагается предзаказ или заказ у партнёра
+    expect(find.text('Нет в наличии'), findsOneWidget);
+    expect(find.text('Сообщим о поступлении'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'В корзину'), findsOneWidget);
   });
 }
