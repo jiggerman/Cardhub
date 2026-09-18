@@ -1,85 +1,57 @@
-import React, { useState } from 'react';
-import { 
-  Container, 
-  Box, 
-  Typography 
-} from '@mui/material';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import SearchBar from '../components/ui/SearchBar';
-import CardGrid from '../features/cards/components/CardGrid';
-import CardPopup from '../features/cards/components/CardPopup';
+import Icon from '../components/ui/Icon';
+import cardBack from '../Magic_card_back.webp';
+
+const showcase = [
+  { name: 'The One Ring', hue: 'violet' },
+  { name: 'Force of Will', hue: 'blue' },
+  { name: 'Sheoldred', hue: 'rose' },
+  { name: 'Ragavan', hue: 'amber' },
+  { name: 'Polluted Delta', hue: 'teal' },
+];
 
 const Home = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-  };
-
-  const handleCardClick = (card) => {
-    setSelectedCard(card);
-    setIsPopupOpen(true);
-  };
-
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
-    setSelectedCard(null);
-  };
+  const navigate = useNavigate();
+  const search = (query) => navigate(`/catalog?q=${encodeURIComponent(query)}`);
 
   return (
-    <Container maxWidth="lg">
-      {/* Поисковая строка в центре */}
-      <Box
-        sx={{
-          minHeight: searchQuery ? '20vh' : '80vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 4,
-          transition: 'min-height 0.3s ease'
-        }}
-      >
-        {!searchQuery && (
-          <Box sx={{ textAlign: 'center', px: 2 }}>
-            <Typography
-              variant="h3"
-              component="h1"
-              sx={{
-                mb: 1.5,
-                backgroundImage: (theme) =>
-                  `linear-gradient(135deg, ${theme.palette.text.primary}, ${theme.palette.primary.light})`,
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              Найди свою карту
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Поиск среди тысяч карт Magic: The Gathering в наличии и на предзаказ
-            </Typography>
-          </Box>
-        )}
-        <SearchBar onSearch={handleSearch} />
-      </Box>
-      
-      {/* Сетка карточек */}
-      {searchQuery && (
-        <CardGrid 
-          searchQuery={searchQuery} 
-          onCardClick={handleCardClick}
-        />
-      )}
-      
-      {/* Попап с деталями карточки */}
-      <CardPopup
-        open={isPopupOpen}
-        onClose={handleClosePopup}
-        card={selectedCard}
-      />
-    </Container>
+    <>
+      <section className="home-hero">
+        <div className="home-hero__noise" />
+        <div className="container home-hero__inner">
+          <div className="home-hero__copy">
+            <span className="eyebrow"><Icon name="sparkle" size={16} /> MTG marketplace · Санкт-Петербург</span>
+            <h1>Найдите ту самую <em>карту.</em></h1>
+            <p>Быстрый поиск по каталогу, честные остатки и три понятных способа получить карту — из наличия, в предзаказ или через партнёра.</p>
+            <SearchBar onSearch={search} large />
+            <div className="search-hints"><span>Популярное:</span>{['The One Ring', 'Sol Ring', 'Sheoldred'].map((name) => <button key={name} onClick={() => search(name)}>{name}</button>)}</div>
+          </div>
+          <div className="card-fan" aria-hidden="true">
+            {showcase.map((card, index) => <div className={`fan-card fan-card--${card.hue}`} key={card.name} style={{ '--i': index }}><img src={cardBack} alt="" /><span>{card.name}</span></div>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="section section--steps">
+        <div className="container">
+          <div className="section-heading"><span className="eyebrow">Покупка карт</span><h2>Как оформить заказ</h2><p>Найдите нужную карту, добавьте её в корзину и укажите данные для доставки.</p></div>
+          <div className="feature-grid">
+            <article><span className="feature-index">01</span><Icon name="search" size={28} /><h3>Найдите карту</h3><p>Введите название карты. В результатах поиска будут указаны доступные издания, цены и остатки.</p></article>
+            <article><span className="feature-index">02</span><Icon name="package" size={28} /><h3>Добавьте в корзину</h3><p>Выберите состояние и количество. Если карты нет в наличии, оформите предзаказ или заказ у партнёра.</p></article>
+            <article><span className="feature-index">03</span><Icon name="clock" size={28} /><h3>Оформите заказ</h3><p>Укажите контакты и способ доставки. Текущий статус заказа отображается в личном кабинете.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container service-banner">
+          <div><span className="eyebrow">Нет в наличии</span><h2>Ищете конкретную карту?</h2><p>Найдите её в каталоге и оформите предзаказ или заказ у партнёра.</p></div>
+          <Link to="/catalog" className="button button--light">Перейти в каталог <Icon name="arrow" size={18} /></Link>
+        </div>
+      </section>
+    </>
   );
 };
 

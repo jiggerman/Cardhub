@@ -52,7 +52,11 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    card_inventory = models.ForeignKey('inventory.CardInventory', on_delete=models.PROTECT)
+    card = models.ForeignKey('cards.Card', on_delete=models.PROTECT, related_name='order_items')
+    card_inventory = models.ForeignKey(
+        'inventory.CardInventory', on_delete=models.PROTECT, null=True, blank=True
+    )
+    quality = models.CharField(max_length=5, default='NM')
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
@@ -75,6 +79,8 @@ class OrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         if self._state.adding and self.order.orderType == 'purchase':
+            if not self.card_inventory_id:
+                raise ValueError('Для покупки необходимо выбрать складскую позицию')
             with transaction.atomic():
                 card_inventory = CardInventory.objects.select_for_update().get(id=self.card_inventory_id)
                 res_quantity = card_inventory.quantity - self.quantity
@@ -92,7 +98,7 @@ class OrderItem(models.Model):
 
 @receiver(post_delete, sender=OrderItem)
 def return_inventory_cards(sender, instance, **kwargs):
-    if instance.order.orderType == 'purchase':
+    if instance.order.orderType == 'purchase' and instance.card_inventory_id:
         with transaction.atomic():
             card_inventory = CardInventory.objects.select_for_update().get(id=instance.card_inventory_id)
             card_inventory.quantity = F('quantity') + instance.quantity

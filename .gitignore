@@ -4,6 +4,7 @@ Lib
 Scripts
 pyvenv.cfg
 .env*
+!backend/.env.example
 default-cards.json
 .vscode
 
@@ -14,3 +15,5 @@ db.sqlite3
 
 # Node
 node_modules/
+# Local Codex/visual QA artifacts
+tmp/

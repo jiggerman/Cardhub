@@ -1,79 +1,22 @@
-import React, { useState } from 'react';
-import {
-  Grid,
-  Typography,
-  Box,
-  Pagination,
-  CircularProgress,
-  Alert
-} from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import { useCardSearch } from '../hooks/useCardSearch';
 import Card from './Card';
 
-const CardGrid = ({ searchQuery, onCardClick }) => {
+const CardGrid = ({ searchQuery, view = 'grid', onAdd }) => {
   const [page, setPage] = useState(1);
   const { cards, loading, error, total } = useCardSearch(searchQuery, page);
+  useEffect(() => setPage(1), [searchQuery]);
 
-  const handlePageChange = (event, value) => {
-    setPage(value);
-  };
+  if (loading) return <div className="catalog-state"><span className="loader" /><strong>Ищем карты…</strong><p>Проверяем каталог и остатки.</p></div>;
+  if (error) return <div className="catalog-state catalog-state--error"><strong>Каталог временно недоступен</strong><p>{error}</p></div>;
+  if (!cards.length) return <div className="catalog-state"><strong>Ничего не нашли</strong><p>Попробуйте английское название карты или код сета.</p></div>;
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" my={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ my: 2 }}>
-        Ошибка при загрузке карточек: {error}
-      </Alert>
-    );
-  }
-
-  if (cards.length === 0 && searchQuery) {
-    return (
-      <Box textAlign="center" my={4}>
-        <Typography variant="h6" color="text.secondary">
-          По запросу "{searchQuery}" ничего не найдено
-        </Typography>
-      </Box>
-    );
-  }
-
-  const totalPages = Math.ceil(total / 20);
-
+  const pages = Math.max(1, Math.ceil(total / 20));
   return (
-    <Box sx={{ width: '100%', my: 4 }}>
-      {total > 0 && (
-        <Typography variant="subtitle1" color="text.secondary" mb={3}>
-          Найдено карт: {total} (Страница {page} из {totalPages})
-        </Typography>
-      )}
-      
-      <Grid container spacing={3} justifyContent="center">
-        {cards.map((card) => (
-          <Grid key={card.id}>
-            <Card card={card} onCardClick={onCardClick} />
-          </Grid>
-        ))}
-      </Grid>
-
-      {totalPages > 1 && (
-        <Box display="flex" justifyContent="center" mt={4}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={handlePageChange}
-            color="primary"
-            size="large"
-          />
-        </Box>
-      )}
-    </Box>
+    <>
+      <div className={`products products--${view}`}>{cards.map((card) => <Card key={card.id} card={card} view={view} onAdd={onAdd} />)}</div>
+      {pages > 1 && <div className="pagination"><button disabled={page === 1} onClick={() => setPage(page - 1)}>Назад</button><span>{page} / {pages}</span><button disabled={page === pages} onClick={() => setPage(page + 1)}>Дальше</button></div>}
+    </>
   );
 };
 
