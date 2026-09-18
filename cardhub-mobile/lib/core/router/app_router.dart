@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/auth_page.dart';
 import '../../features/cart/presentation/cart_page.dart';
 import '../../features/catalog/domain/card.dart';
 import '../../features/catalog/presentation/card_details_page.dart';
@@ -17,12 +18,19 @@ abstract final class AppRoutes {
 
   /// Карточка карты лежит внутри вкладки каталога, поэтому таб-бар остаётся на месте.
   static String cardDetails(int cardId) => '$catalog/card/$cardId';
+
+  /// Вход открывается поверх вкладок — на него уходят и из профиля, и из оформления.
+  static const auth = '/auth';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: AppRoutes.catalog,
     routes: [
+      GoRoute(
+        path: AppRoutes.auth,
+        builder: (context, state) => const AuthPage(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => HomeShell(shell: shell),
         branches: [
