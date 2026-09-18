@@ -92,10 +92,11 @@ button { color: inherit; }
 .search-hints { margin-top: 15px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: var(--muted-2); font-size: 12px; }
 .search-hints button, .quick-links button { padding: 0; border: 0; border-bottom: 1px dashed #77717e; color: var(--muted); background: transparent; cursor: pointer; }
 .card-fan { position: relative; height: 480px; min-width: 430px; }
-.fan-card { --angle: calc((var(--i) - 2) * 8deg); position: absolute; top: 62px; left: 50%; width: 228px; padding: 8px; border: 1px solid rgba(255,255,255,.16); border-radius: 17px; background: #27232c; box-shadow: var(--shadow); transform-origin: 50% 110%; transform: translateX(-50%) translateX(calc((var(--i) - 2) * 55px)) rotate(var(--angle)); transition: transform .35s ease; }
+.fan-card { --angle: calc((var(--i) - 2) * 8deg); position: absolute; top: 62px; left: 50%; width: 228px; padding: 8px; border: 1px solid rgba(255,255,255,.16); border-radius: 17px; color: inherit; background: #27232c; box-shadow: var(--shadow); font: inherit; text-align: left; cursor: pointer; transform-origin: 50% 110%; transform: translateX(-50%) translateX(calc((var(--i) - 2) * 55px)) rotate(var(--angle)); transition: transform .35s ease; }
 .fan-card:nth-child(1), .fan-card:nth-child(5) { top: 96px; }
 .fan-card:nth-child(2), .fan-card:nth-child(4) { top: 76px; }
 .fan-card:hover { z-index: 5; transform: translateX(-50%) translateX(calc((var(--i) - 2) * 58px)) rotate(var(--angle)) translateY(-18px); }
+.fan-card:focus-visible { z-index: 6; outline: 3px solid var(--violet); outline-offset: 4px; }
 .fan-card img { width: 100%; border-radius: 12px; aspect-ratio: 63/88; object-fit: cover; filter: saturate(.55) contrast(1.05); }
 .fan-card span { position: absolute; left: 17px; right: 17px; bottom: 18px; padding: 18px 9px 8px; color: #fff; background: linear-gradient(transparent, rgba(8,7,10,.9)); font-size: 12px; font-weight: 800; }
 .fan-card--violet { box-shadow: 0 25px 70px rgba(115,87,237,.22); }.fan-card--rose { border-color: rgba(255,122,136,.25); }.fan-card--amber { border-color: rgba(246,189,96,.25); }.fan-card--teal { border-color: rgba(119,216,173,.25); }
