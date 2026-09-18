@@ -3,14 +3,22 @@ import 'package:cardhub_mobile/features/catalog/domain/card.dart';
 import 'package:dio/dio.dart';
 
 /// Ответ бэкенда `/api/cards/{name}` в том виде, в каком его отдаёт DRF.
+/// Список состояний бэкенд считает по позициям в наличии — фикстура делает
+/// так же, чтобы тестовые данные не расходились с настоящими.
 Map<String, dynamic> cardJson({
   int id = 1,
   String name = 'Lightning Bolt',
   int inStock = 2,
   String? minPrice = '818.00',
   List<Map<String, dynamic>>? offers,
-}) =>
-    {
+}) {
+  final items = offers ??
+      [
+        {'id': 3, 'quality': 'MP', 'lang': 'en', 'foil': true, 'quantity': 1, 'price': '818.00'},
+        {'id': 4, 'quality': 'NM', 'lang': 'en', 'foil': false, 'quantity': 1, 'price': '1445.00'},
+      ];
+
+  return {
       'id': id,
       'color': 'Red',
       'set_code': 'msc',
@@ -25,13 +33,15 @@ Map<String, dynamic> cardJson({
       'updated_at': '2026-09-16T18:10:41.583093Z',
       'in_stock': inStock,
       'min_price': minPrice == null ? null : double.parse(minPrice),
-      'available_qualities': ['MP', 'NM'],
-      'offers': offers ??
-          [
-            {'id': 3, 'quality': 'MP', 'lang': 'en', 'foil': true, 'quantity': 1, 'price': '818.00'},
-            {'id': 4, 'quality': 'NM', 'lang': 'en', 'foil': false, 'quantity': 1, 'price': '1445.00'},
-          ],
+      'available_qualities': items
+          .where((item) => (item['quantity'] as int) > 0)
+          .map((item) => item['quality'] as String)
+          .toSet()
+          .toList()
+        ..sort(),
+      'offers': items,
     };
+}
 
 class FakeCardsRepository implements CardsRepository {
   FakeCardsRepository({List<MtgCard>? cards, this.failure})

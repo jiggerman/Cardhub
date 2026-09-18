@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/message_state.dart';
+import '../../cart/presentation/widgets/buy_box.dart';
 import '../application/catalog_providers.dart';
 import '../domain/card.dart';
 import '../domain/card_offer.dart';
@@ -106,14 +107,8 @@ class _Details extends ConsumerWidget {
             'Остатки меняются: потяните экран вниз, чтобы обновить.',
             style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
           ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Корзина появится на следующем этапе')),
-            ),
-            icon: const Icon(Icons.add_shopping_cart_rounded, size: 20),
-            label: Text(card.isPreorder ? 'Оформить предзаказ' : 'Добавить в корзину'),
-          ),
+          const SizedBox(height: 28),
+          BuyBox(key: ValueKey(card.id), card: card),
         ],
       ),
     );
