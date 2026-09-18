@@ -41,6 +41,7 @@ dependencies:
   dio: ^5.11.1
   flutter_secure_storage: ^11.2.0
   shared_preferences: ^2.5.5
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +64,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    # Рубашка карты — заглушка для карт без изображения (те же файлы, что в вебе)
+    - assets/images/
 
   # Manrope — тот же шрифт, что и в веб-клиенте. Лицензия OFL лежит рядом
   # с файлами (assets/fonts/OFL.txt).

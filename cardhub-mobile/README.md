@@ -57,9 +57,15 @@ lib/
     network/               клиент Dio и разбор ошибок DRF
     router/                go_router и нижний таб-бар
     theme/                 цвета и типографика из веб-клиента
+    utils/                 разбор JSON и форматирование цен
     widgets/               общие виджеты
   features/
-    catalog/ cart/ orders/ profile/
+    catalog/
+      domain/              модели карты и складских позиций
+      data/                запросы к /api/cards и /api/card
+      application/         провайдеры поиска (дебаунс, отмена, страницы)
+      presentation/        экраны каталога и карточки карты
+    cart/ orders/ profile/
       presentation/        экраны
 ```
 
